@@ -559,7 +559,7 @@
             
             if (!authToken || !userData) {
                 // Usuário não autenticado, redirecionar para login
-                window.location.href = './frontend-universal.html';
+                window.location.href = './login-direto.html';
                 return;
             }
             
@@ -576,7 +576,7 @@
                 console.error('Erro ao ler dados do usuário:', error);
                 // Dados corrompidos, redirecionar para login
                 localStorage.clear();
-                window.location.href = './frontend-universal.html';
+                window.location.href = './login-direto.html';
             }
         }
 
@@ -981,7 +981,7 @@
                 localStorage.removeItem('user_data');
                 
                 // Redirecionar para página de login
-                window.location.href = './frontend-universal.html';
+                window.location.href = './login-direto.html';
             }
         }
 
