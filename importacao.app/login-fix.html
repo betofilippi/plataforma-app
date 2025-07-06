@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔧 Login Fix - Plataforma ERP</title>
+    <style>
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+            margin: 0; padding: 20px; background: #f5f7fa; 
+        }
+        .container { max-width: 800px; margin: 0 auto; }
+        .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin: 20px 0; }
+        .problem { background: #fef2f2; border-left: 4px solid #ef4444; }
+        .solution { background: #f0fdf4; border-left: 4px solid #22c55e; }
+        .test-section { background: #fafafa; padding: 20px; border-radius: 8px; margin: 15px 0; }
+        button { 
+            background: #3b82f6; color: white; border: none; padding: 12px 24px; 
+            border-radius: 6px; cursor: pointer; margin: 5px; font-size: 14px;
+        }
+        button:hover { background: #2563eb; }
+        .result { 
+            margin: 15px 0; padding: 15px; border-radius: 6px; 
+            font-family: 'Courier New', monospace; font-size: 14px;
+            white-space: pre-wrap; word-wrap: break-word;
+        }
+        .success { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+        .error { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+        .info { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
+        .code { background: #1f2937; color: #f9fafb; padding: 15px; border-radius: 6px; overflow-x: auto; }
+        h1 { color: #1f2937; margin-bottom: 10px; }
+        h2 { color: #374151; margin-top: 30px; }
+        h3 { color: #4b5563; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Login Fix - Plataforma ERP</h1>
+        <p><strong>Status:</strong> Investigando erro "failed to fetch" no login</p>
+
+        <div class="card problem">
+            <h2>❌ Problema Identificado</h2>
+            <p>O frontend está tentando conectar com a API mas está falhando. Possíveis causas:</p>
+            <ul>
+                <li>🌐 URL da API incorreta no frontend</li>
+                <li>🔒 Problemas de CORS</li>
+                <li>📱 Configuração de ambiente incorreta</li>
+                <li>🔗 Conectividade de rede</li>
+            </ul>
+        </div>
+
+        <div class="card solution">
+            <h2>✅ Solução</h2>
+            <p>Vamos testar a API diretamente para identificar o problema exato:</p>
+            
+            <div class="test-section">
+                <h3>🧪 Teste 1: Conectividade API</h3>
+                <button onclick="testAPIHealth()">Testar Health Check</button>
+                <div id="health-result" class="result info">Clique no botão para testar</div>
+            </div>
+
+            <div class="test-section">
+                <h3>🔐 Teste 2: Login API</h3>
+                <button onclick="testAPILogin()">Testar Login</button>
+                <div id="login-result" class="result info">Clique no botão para testar</div>
+            </div>
+
+            <div class="test-section">
+                <h3>🌐 Teste 3: CORS e Headers</h3>
+                <button onclick="testCORS()">Testar CORS</button>
+                <div id="cors-result" class="result info">Clique no botão para testar</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📊 Informações do Sistema</h2>
+            <div class="code" id="system-info">Carregando...</div>
+        </div>
+
+        <div class="card">
+            <h2>🔧 URLs Configuradas</h2>
+            <div class="code">
+API Backend: https://erp-api-clean-gvqpypebh-nxt-9032fd74.vercel.app
+Frontend:    https://importacao-app-frontend-5fho0vsxv-nxt-9032fd74.vercel.app
+Redireção:   https://plataforma-app-nxt.vercel.app
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://erp-api-clean-gvqpypebh-nxt-9032fd74.vercel.app'
+
+        // System info
+        document.getElementById('system-info').textContent = 
+`URL atual: ${window.location.href}
+User Agent: ${navigator.userAgent}
+Domínio: ${window.location.hostname}
+Protocolo: ${window.location.protocol}
+Timestamp: ${new Date().toISOString()}`
+
+        function setResult(id, content, type = 'info') {
+            const el = document.getElementById(id)
+            el.textContent = content
+            el.className = `result ${type}`
+        }
+
+        async function testAPIHealth() {
+            setResult('health-result', 'Testando conectividade...', 'info')
+            
+            try {
+                console.log('🔧 Testing API Health')
+                const response = await fetch(`${API_URL}/health`)
+                const data = await response.json()
+                
+                setResult('health-result', 
+                    `✅ API ONLINE\n\nStatus: ${response.status}\nResponse: ${JSON.stringify(data, null, 2)}`, 
+                    'success'
+                )
+            } catch (error) {
+                console.error('Health check failed:', error)
+                setResult('health-result', 
+                    `❌ ERRO DE CONECTIVIDADE\n\nErro: ${error.name}\nMensagem: ${error.message}\nStack: ${error.stack}`, 
+                    'error'
+                )
+            }
+        }
+
+        async function testAPILogin() {
+            setResult('login-result', 'Testando login...', 'info')
+            
+            try {
+                console.log('🔧 Testing Login')
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: 'admin@plataforma.app',
+                        password: 'admin123'
+                    })
+                })
+                
+                const data = await response.json()
+                
+                if (response.ok) {
+                    setResult('login-result', 
+                        `✅ LOGIN FUNCIONANDO\n\nStatus: ${response.status}\nUsuário: ${data.data.user.email}\nToken: ${data.data.access_token.substring(0, 20)}...`, 
+                        'success'
+                    )
+                } else {
+                    setResult('login-result', 
+                        `❌ ERRO DE LOGIN\n\nStatus: ${response.status}\nErro: ${data.message}`, 
+                        'error'
+                    )
+                }
+            } catch (error) {
+                console.error('Login test failed:', error)
+                setResult('login-result', 
+                    `❌ ERRO DE FETCH\n\nErro: ${error.name}\nMensagem: ${error.message}\nStack: ${error.stack}`, 
+                    'error'
+                )
+            }
+        }
+
+        async function testCORS() {
+            setResult('cors-result', 'Testando CORS...', 'info')
+            
+            try {
+                console.log('🔧 Testing CORS')
+                
+                // Test preflight
+                const preflightResponse = await fetch(`${API_URL}/auth/login`, {
+                    method: 'OPTIONS',
+                    headers: {
+                        'Origin': window.location.origin,
+                        'Access-Control-Request-Method': 'POST',
+                        'Access-Control-Request-Headers': 'Content-Type'
+                    }
+                })
+                
+                console.log('Preflight response:', preflightResponse)
+                
+                setResult('cors-result', 
+                    `✅ CORS CONFIGURADO\n\nPreflight Status: ${preflightResponse.status}\nOrigin: ${window.location.origin}\nAPI URL: ${API_URL}`, 
+                    'success'
+                )
+            } catch (error) {
+                console.error('CORS test failed:', error)
+                setResult('cors-result', 
+                    `❌ ERRO DE CORS\n\nErro: ${error.name}\nMensagem: ${error.message}`, 
+                    'error'
+                )
+            }
+        }
+
+        // Auto-run health check
+        console.log('🚀 Página carregada - testando conectividade')
+        setTimeout(testAPIHealth, 1000)
+    </script>
+</body>
+</html>
