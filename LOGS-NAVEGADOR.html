@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📊 LOGS NAVEGADOR - Capturar Tudo</title>
+    <style>
+        body { font-family: monospace; margin: 10px; background: #1a1a1a; color: #fff; }
+        .console { background: #000; padding: 15px; border-radius: 5px; height: 300px; overflow-y: auto; margin: 10px 0; }
+        .console div { margin: 2px 0; padding: 2px; }
+        .log { color: #fff; }
+        .error { color: #ff6b6b; }
+        .warn { color: #ffd93d; }
+        .info { color: #6bcf7f; }
+        .network { color: #4ecdc4; }
+        button { background: #2c3e50; color: #fff; border: none; padding: 10px 15px; margin: 5px; cursor: pointer; }
+        button:hover { background: #34495e; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .online { background: #27ae60; }
+        .offline { background: #e74c3c; }
+        h1 { text-align: center; color: #3498db; }
+    </style>
+</head>
+<body>
+    <h1>📊 LOGS DO NAVEGADOR - CAPTURAR TUDO</h1>
+    
+    <div id="status" class="status">🔄 Iniciando monitoramento...</div>
+    
+    <div>
+        <button onclick="testarTudo()">🚀 TESTAR TUDO</button>
+        <button onclick="testarSoAPI()">🔧 SÓ API</button>
+        <button onclick="limparConsole()">🗑️ Limpar</button>
+        <button onclick="copiarLogs()">📋 Copiar Logs</button>
+    </div>
+    
+    <div class="console" id="console"></div>
+    
+    <script>
+        const API_URL = 'https://erp-api-clean-r88y1fdz9-nxt-9032fd74.vercel.app'
+        let logs = []
+        
+        function addLog(message, type = 'log') {
+            const timestamp = new Date().toLocaleTimeString()
+            const logText = `[${timestamp}] ${message}`
+            logs.push(logText)
+            
+            const console = document.getElementById('console')
+            const div = document.createElement('div')
+            div.className = type
+            div.textContent = logText
+            console.appendChild(div)
+            console.scrollTop = console.scrollHeight
+            
+            // Original console também
+            window.originalConsole[type](message)
+        }
+        
+        // Interceptar console
+        window.originalConsole = {
+            log: console.log,
+            error: console.error,
+            warn: console.warn,
+            info: console.info
+        }
+        
+        console.log = (msg) => addLog(msg, 'log')
+        console.error = (msg) => addLog(msg, 'error')
+        console.warn = (msg) => addLog(msg, 'warn')
+        console.info = (msg) => addLog(msg, 'info')
+        
+        // Interceptar fetch
+        const originalFetch = window.fetch
+        window.fetch = async function(...args) {
+            addLog(`🌐 FETCH: ${args[0]}`, 'network')
+            addLog(`📝 Options: ${JSON.stringify(args[1] || {})}`, 'network')
+            
+            try {
+                const response = await originalFetch.apply(this, args)
+                addLog(`✅ Response: ${response.status} ${response.statusText}`, 'network')
+                return response
+            } catch (error) {
+                addLog(`❌ Fetch Error: ${error.name} - ${error.message}`, 'error')
+                throw error
+            }
+        }
+        
+        // Monitorar erros globais
+        window.addEventListener('error', (event) => {
+            addLog(`💥 Global Error: ${event.message}`, 'error')
+            addLog(`📍 File: ${event.filename}:${event.lineno}:${event.colno}`, 'error')
+        })
+        
+        window.addEventListener('unhandledrejection', (event) => {
+            addLog(`💥 Unhandled Promise: ${event.reason}`, 'error')
+        })
+        
+        // Status da conexão
+        function updateStatus() {
+            const status = document.getElementById('status')
+            const isOnline = navigator.onLine
+            const protocol = window.location.protocol
+            const isLocalhost = window.location.hostname === 'localhost'
+            
+            if (isOnline && protocol === 'http:' && isLocalhost) {
+                status.className = 'status online'
+                status.textContent = '✅ ONLINE - HTTP Localhost - CORS deve funcionar'
+            } else if (protocol === 'file:') {
+                status.className = 'status offline'
+                status.textContent = '❌ FILE:// Protocol - CORS bloqueado'
+            } else if (!isOnline) {
+                status.className = 'status offline'
+                status.textContent = '❌ OFFLINE - Sem conexão'
+            } else {
+                status.className = 'status online'
+                status.textContent = `✅ ONLINE - ${protocol} - ${window.location.hostname}`
+            }
+        }
+        
+        async function testarTudo() {
+            addLog('🚀 INICIANDO TESTE COMPLETO', 'info')
+            addLog(`URL: ${window.location.href}`, 'info')
+            addLog(`User Agent: ${navigator.userAgent}`, 'info')
+            addLog(`Online: ${navigator.onLine}`, 'info')
+            
+            // Teste 1: Health
+            try {
+                addLog('📡 Testando /health...', 'info')
+                const healthResponse = await fetch(`${API_URL}/health`)
+                const healthData = await healthResponse.json()
+                addLog(`✅ Health OK: ${JSON.stringify(healthData)}`, 'info')
+            } catch (error) {
+                addLog(`❌ Health Error: ${error.message}`, 'error')
+            }
+            
+            // Teste 2: Login
+            try {
+                addLog('🔐 Testando login...', 'info')
+                const loginResponse = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: 'admin@plataforma.app',
+                        password: 'admin123'
+                    })
+                })
+                
+                const loginData = await loginResponse.json()
+                
+                if (loginData.success) {
+                    addLog(`🎉 LOGIN SUCESSO!`, 'info')
+                    addLog(`User: ${loginData.data.user.email}`, 'info')
+                    addLog(`Token: ${loginData.data.access_token.substring(0, 20)}...`, 'info')
+                } else {
+                    addLog(`❌ Login falhou: ${loginData.message}`, 'error')
+                }
+                
+            } catch (error) {
+                addLog(`❌ LOGIN ERROR: ${error.name}`, 'error')
+                addLog(`Message: ${error.message}`, 'error')
+                addLog(`Stack: ${error.stack}`, 'error')
+                
+                // Diagnóstico específico
+                if (error.message === 'Failed to fetch') {
+                    addLog('🔍 DIAGNÓSTICO FAILED TO FETCH:', 'warn')
+                    addLog('1. Verifique se está em http://localhost', 'warn')
+                    addLog('2. Verifique conexão com internet', 'warn')
+                    addLog('3. Verifique firewall/antivírus', 'warn')
+                    addLog('4. Tente desabilitar extensões do navegador', 'warn')
+                }
+            }
+        }
+        
+        async function testarSoAPI() {
+            addLog('🔧 TESTE DIRETO DA API', 'info')
+            
+            try {
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    mode: 'cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: 'admin@plataforma.app',
+                        password: 'admin123'
+                    })
+                })
+                
+                const data = await response.json()
+                addLog(`API Response: ${JSON.stringify(data)}`, 'info')
+                
+            } catch (error) {
+                addLog(`API Error: ${error.message}`, 'error')
+            }
+        }
+        
+        function limparConsole() {
+            document.getElementById('console').innerHTML = ''
+            logs = []
+        }
+        
+        function copiarLogs() {
+            const logText = logs.join('\n')
+            navigator.clipboard.writeText(logText).then(() => {
+                addLog('📋 Logs copiados para clipboard!', 'info')
+            })
+        }
+        
+        // Inicialização
+        updateStatus()
+        addLog('📊 Monitor de logs iniciado', 'info')
+        addLog(`🎯 API Target: ${API_URL}`, 'info')
+        
+        // Auto-teste se for localhost
+        if (window.location.hostname === 'localhost') {
+            setTimeout(() => {
+                addLog('🤖 Auto-teste em localhost...', 'info')
+                testarTudo()
+            }, 3000)
+        }
+        
+        // Monitor de conexão
+        window.addEventListener('online', () => {
+            addLog('🟢 Conexão restaurada', 'info')
+            updateStatus()
+        })
+        
+        window.addEventListener('offline', () => {
+            addLog('🔴 Conexão perdida', 'warn')
+            updateStatus()
+        })
+    </script>
+</body>
+</html>
