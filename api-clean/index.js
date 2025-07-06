@@ -5,20 +5,16 @@ require('dotenv').config()
 
 const app = express()
 
-// Production CORS configuration
+// Production CORS configuration - Allow all origins for debugging
 app.use(cors({
-  origin: [
-    'http://localhost:3000', 
-    'http://localhost:3001', 
-    'http://localhost:3002', 
-    'https://plataforma-app-nxt.vercel.app',
-    'https://plataforma-erp-backend.vercel.app',
-    'https://nxt-erp-backend-8frb2e6mn-nxt-9032fd74.vercel.app'
-  ],
-  credentials: true,
+  origin: '*',
+  credentials: false, // Set to false when using '*' 
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Access-Control-Allow-Origin']
 }))
+
+// Also add explicit OPTIONS handling
+app.options('*', cors())
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }))

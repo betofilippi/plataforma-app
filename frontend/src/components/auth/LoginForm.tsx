@@ -114,7 +114,7 @@ export default function LoginForm() {
           <Alert>
             <AlertDescription className="text-sm">
               <strong>Usuário demo:</strong> admin@plataforma.app<br />
-              <strong>Senha:</strong> Admin@2025
+              <strong>Senha:</strong> admin123
             </AlertDescription>
           </Alert>
         </form>

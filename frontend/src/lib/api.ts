@@ -1,7 +1,10 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002'
 
-// For production, we'll use a public API endpoint once SSO is resolved
-// const PRODUCTION_API_URL = 'https://nxt-erp-backend-ou9mb97ly-nxt-9032fd74.vercel.app'
+console.log('🔧 API Configuration:', {
+  NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
+  API_BASE_URL,
+  NODE_ENV: process.env.NODE_ENV
+})
 
 interface ApiResponse<T = any> {
   success: boolean
@@ -23,6 +26,8 @@ class ApiClient {
   ): Promise<ApiResponse<T>> {
     const url = `${this.baseURL}${endpoint}`
     
+    console.log('🔌 API Request:', { url, method: options.method || 'GET', baseURL: this.baseURL })
+    
     const config: RequestInit = {
       headers: {
         'Content-Type': 'application/json',
@@ -41,8 +46,12 @@ class ApiClient {
     }
 
     try {
+      console.log('📡 Fetching:', url, config)
       const response = await fetch(url, config)
+      console.log('📥 Response status:', response.status, response.statusText)
+      
       const data = await response.json()
+      console.log('📄 Response data:', data)
 
       if (!response.ok) {
         throw new Error(data.message || `HTTP error! status: ${response.status}`)
@@ -50,7 +59,13 @@ class ApiClient {
 
       return data
     } catch (error) {
-      console.error('API request failed:', error)
+      console.error('❌ API request failed:', error)
+      console.error('🔍 Error details:', {
+        url,
+        baseURL: this.baseURL,
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined
+      })
       throw error
     }
   }

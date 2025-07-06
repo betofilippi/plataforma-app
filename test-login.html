@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Login API</title>
+    <meta charset="UTF-8">
+</head>
+<body>
+    <h1>Test API Connection</h1>
+    <button onclick="testAPI()">Test API Health</button>
+    <button onclick="testLogin()">Test Login</button>
+    <div id="result"></div>
+
+    <script>
+        const API_URL = 'https://erp-api-clean-gvqpypebh-nxt-9032fd74.vercel.app'
+        
+        async function testAPI() {
+            const result = document.getElementById('result')
+            result.innerHTML = 'Testing API...'
+            
+            try {
+                console.log('🔧 Testing API Health:', API_URL + '/health')
+                const response = await fetch(API_URL + '/health')
+                const data = await response.json()
+                
+                result.innerHTML = `
+                    <h3>✅ API Health Test Success</h3>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `
+                console.log('✅ API Health Success:', data)
+            } catch (error) {
+                result.innerHTML = `
+                    <h3>❌ API Health Test Failed</h3>
+                    <pre>${error.message}</pre>
+                `
+                console.error('❌ API Health Error:', error)
+            }
+        }
+        
+        async function testLogin() {
+            const result = document.getElementById('result')
+            result.innerHTML = 'Testing Login...'
+            
+            try {
+                console.log('🔧 Testing Login:', API_URL + '/auth/login')
+                
+                const response = await fetch(API_URL + '/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: 'admin@plataforma.app',
+                        password: 'admin123'
+                    })
+                })
+                
+                console.log('📥 Response status:', response.status, response.statusText)
+                
+                const data = await response.json()
+                
+                result.innerHTML = `
+                    <h3>✅ Login Test Success</h3>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `
+                console.log('✅ Login Success:', data)
+            } catch (error) {
+                result.innerHTML = `
+                    <h3>❌ Login Test Failed</h3>
+                    <pre>${error.message}</pre>
+                    <p><strong>Error type:</strong> ${error.name}</p>
+                    <p><strong>Stack:</strong> ${error.stack}</p>
+                `
+                console.error('❌ Login Error:', error)
+                console.error('❌ Error details:', {
+                    name: error.name,
+                    message: error.message,
+                    stack: error.stack
+                })
+            }
+        }
+        
+        // Auto test on load
+        console.log('🚀 Page loaded, testing API...')
+        window.addEventListener('load', () => {
+            console.log('🔧 Window loaded')
+        })
+    </script>
+</body>
+</html>
