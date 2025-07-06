@@ -1,0 +1,28 @@
+[build]
+  publish = "frontend/public"
+  command = "echo 'Static build ready'"
+
+[build.environment]
+  NODE_VERSION = "18"
+
+[[redirects]]
+  from = "/api/*"
+  to = "https://plataforma-api.vercel.app/api/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/app"
+  to = "/dashboard"
+  status = 302
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[[headers]]
+  for = "/api/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS"
+    Access-Control-Allow-Headers = "Content-Type, Authorization"
