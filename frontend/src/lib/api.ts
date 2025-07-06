@@ -1,4 +1,7 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002'
+
+// For production, we'll use a public API endpoint once SSO is resolved
+// const PRODUCTION_API_URL = 'https://nxt-erp-backend-ou9mb97ly-nxt-9032fd74.vercel.app'
 
 interface ApiResponse<T = any> {
   success: boolean
@@ -105,10 +108,43 @@ class ApiClient {
       body: JSON.stringify(data),
     })
   }
+
+  // Convenience methods for common HTTP operations
+  async get<T>(endpoint: string) {
+    return this.request<T>(endpoint, { method: 'GET' })
+  }
+
+  async post<T>(endpoint: string, data?: any) {
+    return this.request<T>(endpoint, {
+      method: 'POST',
+      body: data ? JSON.stringify(data) : undefined,
+    })
+  }
+
+  async put<T>(endpoint: string, data?: any) {
+    return this.request<T>(endpoint, {
+      method: 'PUT',
+      body: data ? JSON.stringify(data) : undefined,
+    })
+  }
+
+  async patch<T>(endpoint: string, data?: any) {
+    return this.request<T>(endpoint, {
+      method: 'PATCH',
+      body: data ? JSON.stringify(data) : undefined,
+    })
+  }
+
+  async delete<T>(endpoint: string) {
+    return this.request<T>(endpoint, { method: 'DELETE' })
+  }
 }
 
 // Create and export a singleton instance
 export const apiClient = new ApiClient()
+
+// For backward compatibility, also export as 'api'
+export const api = apiClient
 
 // Export individual API functions for convenience
 export const dashboardApi = {

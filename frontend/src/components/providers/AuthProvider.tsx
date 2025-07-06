@@ -56,7 +56,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (response.ok) {
         const userData = await response.json()
-        setUser(userData.data)
+        if (userData.data) {
+          setUser(userData.data)
+        }
       } else {
         // Token is invalid or expired
         localStorage.removeItem('auth_token')
@@ -75,7 +77,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const response = await authApi.login(email, password)
 
-      if (!response.success) {
+      if (!response.success || !response.data) {
         throw new Error(response.message || 'Erro ao fazer login')
       }
 

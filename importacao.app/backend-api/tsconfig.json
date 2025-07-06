@@ -1,0 +1,54 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "commonjs",
+    "lib": ["ES2022"],
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "declaration": false,
+    "sourceMap": true,
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "moduleResolution": "node",
+    "baseUrl": "./",
+    "paths": {
+      "@/*": ["src/*"],
+      "@/types": ["src/types/*"],
+      "@/models": ["src/models/*"],
+      "@/controllers": ["src/controllers/*"],
+      "@/services": ["src/services/*"],
+      "@/middleware": ["src/middleware/*"],
+      "@/utils": ["src/utils/*"],
+      "@/config": ["src/config/*"],
+      "@/database": ["src/database/*"],
+      "@/integrations": ["../integrations/*"],
+      "@/shared": ["../shared/*"]
+    },
+    "typeRoots": ["./node_modules/@types"],
+    "types": ["node", "jest"]
+  },
+  "include": [
+    "src/**/*",
+    "../shared/**/*",
+    "../integrations/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "coverage",
+    "logs"
+  ],
+  "ts-node": {
+    "require": ["tsconfig-paths/register"],
+    "transpileOnly": true,
+    "files": true
+  }
+}
