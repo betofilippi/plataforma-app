@@ -147,6 +147,13 @@
         // Detectar ambiente e configurar API
         let API_URL, isLocalhost, isVercel, useProxy;
         
+        // Múltiplas URLs da API para fallback
+        const API_URLS = [
+            'https://erp-api-clean-r88y1fdz9-nxt-9032fd74.vercel.app',
+            'https://erp-api-clean-gvqpypebh-nxt-9032fd74.vercel.app',
+            'https://erp-api-clean-7tc7xr5ia-nxt-9032fd74.vercel.app'
+        ];
+        
         function detectEnvironment() {
             const hostname = window.location.hostname;
             const protocol = window.location.protocol;
@@ -274,6 +281,29 @@
             }
         }
 
+        async function tryLogin(email, password, apiUrl) {
+            console.log('🔐 Tentando login...', { email, apiUrl })
+            
+            const response = await fetch(`${apiUrl}/auth/login`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email, password })
+            })
+
+            console.log('📥 Resposta:', response.status, response.statusText)
+            
+            const data = await response.json()
+            console.log('📄 Dados:', data)
+
+            if (response.ok && data.success) {
+                return { success: true, data: data.data }
+            } else {
+                throw new Error(data.message || 'Erro no login')
+            }
+        }
+
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault()
             
@@ -284,32 +314,45 @@
             setStatus(`Conectando via ${useProxy ? 'proxy' : 'API direta'}...`, 'info')
 
             try {
-                console.log('🔐 Tentando login...', { email, apiUrl: API_URL, useProxy })
-                
-                const response = await fetch(`${API_URL}/auth/login`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ email, password })
-                })
+                let result = null
+                let lastError = null
 
-                console.log('📥 Resposta:', response.status, response.statusText)
-                
-                const data = await response.json()
-                console.log('📄 Dados:', data)
+                if (useProxy) {
+                    // Localhost: usar proxy
+                    result = await tryLogin(email, password, API_URL)
+                } else {
+                    // Vercel: tentar múltiplas URLs da API
+                    for (let i = 0; i < API_URLS.length; i++) {
+                        const apiUrl = API_URLS[i]
+                        setStatus(`Tentando API ${i + 1}/${API_URLS.length}: ${apiUrl.split('-')[2]}...`, 'info')
+                        
+                        try {
+                            result = await tryLogin(email, password, apiUrl)
+                            API_URL = apiUrl // Atualizar URL que funcionou
+                            console.log(`✅ API funcionou: ${apiUrl}`)
+                            break
+                        } catch (error) {
+                            console.log(`❌ API falhou: ${apiUrl}`, error.message)
+                            lastError = error
+                            
+                            if (i < API_URLS.length - 1) {
+                                await new Promise(resolve => setTimeout(resolve, 1000)) // Esperar 1s entre tentativas
+                            }
+                        }
+                    }
+                }
 
-                if (response.ok && data.success) {
-                    localStorage.setItem('auth_token', data.data.access_token)
-                    localStorage.setItem('user_data', JSON.stringify(data.data.user))
+                if (result && result.success) {
+                    localStorage.setItem('auth_token', result.data.access_token)
+                    localStorage.setItem('user_data', JSON.stringify(result.data.user))
                     
-                    setStatus(`🎉 Login realizado com sucesso! Bem-vindo, ${data.data.user.first_name}!`, 'success')
+                    setStatus(`🎉 Login realizado com sucesso! Bem-vindo, ${result.data.user.first_name}!`, 'success')
                     
                     setTimeout(() => {
                         showDashboard()
                     }, 1500)
                 } else {
-                    throw new Error(data.message || 'Erro no login')
+                    throw lastError || new Error('Todas as APIs falharam')
                 }
             } catch (error) {
                 console.error('❌ Erro:', error)
@@ -318,7 +361,7 @@
                     if (useProxy) {
                         setStatus(`❌ Proxy não está rodando! Execute: node proxy-server.js`, 'error')
                     } else {
-                        setStatus(`❌ Erro de CORS ou conectividade: ${error.message}`, 'error')
+                        setStatus(`❌ Erro de CORS: Todas as APIs falharam. Verifique a conectividade.`, 'error')
                     }
                 } else {
                     setStatus(`❌ Erro: ${error.message}`, 'error')
