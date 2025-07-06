@@ -269,5 +269,18 @@ Empresa especializada em **equipamentos de mobilidade elétrica**, atuando na im
 ---
 
 **Versão**: 1.0  
-**Data**: 2025-07-05  
+**Data**: 2025-07-06  
+**Deploy**: GitHub + Vercel  
+**Repositório**: https://github.com/betofilippi/plataforma-app  
+**URL Produção**: https://plataforma.app  
+**Frontend Correto**: https://plataforma.app/frontend-correto.html  
 **Licença**: Proprietário - NXT Indústria e Comércio Ltda
+
+## 🚀 URLs de Acesso
+
+- **Sistema Principal**: https://plataforma.app  
+- **Frontend ERP**: https://plataforma.app/frontend-correto.html  
+- **API Backend**: https://erp-api-clean-gvqpypebh-nxt-9032fd74.vercel.app  
+- **Login Demo**: admin@plataforma.app / admin123
+
+✅ **Status**: Login funcionando - Erro "failed to fetch" resolvido!
