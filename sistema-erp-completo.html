@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema ERP NXT - Completo</title>
+    <meta name="description" content="Sistema ERP completo com todos os módulos">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .sidebar-transition { transition: all 0.3s ease; }
+        .module-card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .module-card:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .sidebar { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); }
+        .sidebar-item { transition: all 0.3s ease; }
+        .sidebar-item:hover { background: rgba(255,255,255,0.1); }
+        .sidebar-item.active { background: rgba(255,255,255,0.2); }
+        .content-area { min-height: calc(100vh - 4rem); }
+        .data-table { max-height: 600px; overflow-y: auto; }
+        .modal { backdrop-filter: blur(10px); }
+        .form-section { display: none; }
+        .form-section.active { display: block; }
+        .loading { animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .status-badge { padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.875rem; font-weight: 500; }
+        .status-active { background: #dcfce7; color: #166534; }
+        .status-inactive { background: #fee2e2; color: #991b1b; }
+        .status-pending { background: #fef3c7; color: #92400e; }
+        .chart-container { position: relative; height: 300px; }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b">
+        <div class="flex justify-between items-center px-6 py-4">
+            <div class="flex items-center space-x-4">
+                <button id="sidebarToggle" class="lg:hidden p-2 rounded hover:bg-gray-100">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="flex items-center space-x-3">
+                    <div class="gradient-bg w-8 h-8 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-cube text-white text-sm"></i>
+                    </div>
+                    <h1 class="text-xl font-bold text-gray-900">Sistema ERP NXT</h1>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="relative">
+                    <input type="text" id="globalSearch" placeholder="Pesquisar..." 
+                           class="w-64 pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <span id="environmentStatus" class="text-sm font-semibold text-green-600">✅ Online</span>
+                    <div class="relative">
+                        <button id="userMenu" class="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100">
+                            <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                                <i class="fas fa-user text-white text-sm"></i>
+                            </div>
+                            <span class="text-sm font-medium">Admin</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="flex">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="sidebar text-white w-64 fixed h-full z-20 lg:relative lg:z-0 sidebar-transition">
+            <div class="p-6">
+                <nav class="space-y-2">
+                    <a href="#dashboard" class="sidebar-item active block px-4 py-3 rounded-lg text-sm font-medium">
+                        <i class="fas fa-tachometer-alt mr-3"></i>Dashboard
+                    </a>
+                    <a href="#cad" class="sidebar-item block px-4 py-3 rounded-lg text-sm font-medium">
+                        <i class="fas fa-address-book mr-3"></i>CAD - Cadastros
+                    </a>
+                    <a href="#vnd" class="sidebar-item block px-4 py-3 rounded-lg text-sm font-medium">
+                        <i class="fas fa-shopping-cart mr-3"></i>VND - Vendas
+                    </a>
+                    <a href="#cmp" class="sidebar-item block px-4 py-3 rounded-lg text-sm font-medium">
+                        <i class="fas fa-shopping-basket mr-3"></i>CMP - Compras
+                    </a>
+                    <a href="#est" class="sidebar-item block px-4 py-3 rounded-lg text-sm font-medium">
+                        <i class="fas fa-boxes mr-3"></i>EST - Estoque
+                    </a>
+                    <a href="#fis" class="sidebar-item block px-4 py-3 rounded-lg text-sm font-medium">
+                        <i class="fas fa-file-invoice mr-3"></i>FIS - Fiscal
+                    </a>
+                    <a href="#imp" class="sidebar-item block px-4 py-3 rounded-lg text-sm font-medium">
+                        <i class="fas fa-ship mr-3"></i>IMP - Importação
+                    </a>
+                    <a href="#prd" class="sidebar-item block px-4 py-3 rounded-lg text-sm font-medium">
+                        <i class="fas fa-industry mr-3"></i>PRD - Produção
+                    </a>
+                    <a href="#log" class="sidebar-item block px-4 py-3 rounded-lg text-sm font-medium">
+                        <i class="fas fa-truck mr-3"></i>LOG - Logística
+                    </a>
+                    <a href="#loc" class="sidebar-item block px-4 py-3 rounded-lg text-sm font-medium">
+                        <i class="fas fa-map-marker-alt mr-3"></i>LOC - Locação
+                    </a>
+                    <a href="#pro" class="sidebar-item block px-4 py-3 rounded-lg text-sm font-medium">
+                        <i class="fas fa-project-diagram mr-3"></i>PRO - Projetos
+                    </a>
+                    <a href="#spt" class="sidebar-item block px-4 py-3 rounded-lg text-sm font-medium">
+                        <i class="fas fa-headset mr-3"></i>SPT - Suporte
+                    </a>
+                    <a href="#whk" class="sidebar-item block px-4 py-3 rounded-lg text-sm font-medium">
+                        <i class="fas fa-webhook mr-3"></i>WHK - Webhooks
+                    </a>
+                </nav>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 content-area">
+            <!-- Dashboard Section -->
+            <div id="dashboard-section" class="form-section active p-6">
+                <div class="mb-6">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-2">Dashboard</h2>
+                    <p class="text-gray-600">Visão geral do sistema ERP</p>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">Clientes</p>
+                                <p class="text-2xl font-bold text-blue-600" id="clientsCount">0</p>
+                            </div>
+                            <div class="p-3 bg-blue-50 rounded-lg">
+                                <i class="fas fa-users text-blue-600"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">Produtos</p>
+                                <p class="text-2xl font-bold text-green-600" id="productsCount">0</p>
+                            </div>
+                            <div class="p-3 bg-green-50 rounded-lg">
+                                <i class="fas fa-box text-green-600"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">Vendas</p>
+                                <p class="text-2xl font-bold text-purple-600" id="salesCount">0</p>
+                            </div>
+                            <div class="p-3 bg-purple-50 rounded-lg">
+                                <i class="fas fa-chart-line text-purple-600"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">Faturamento</p>
+                                <p class="text-2xl font-bold text-orange-600" id="revenueCount">R$ 0</p>
+                            </div>
+                            <div class="p-3 bg-orange-50 rounded-lg">
+                                <i class="fas fa-dollar-sign text-orange-600"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border">
+                        <h3 class="text-lg font-semibold mb-4">Vendas Mensais</h3>
+                        <div class="chart-container">
+                            <canvas id="salesChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border">
+                        <h3 class="text-lg font-semibold mb-4">Produtos por Categoria</h3>
+                        <div class="chart-container">
+                            <canvas id="productsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border">
+                    <h3 class="text-lg font-semibold mb-4">Atividades Recentes</h3>
+                    <div id="recentActivity" class="space-y-4">
+                        <!-- Activities will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- CAD Section -->
+            <div id="cad-section" class="form-section p-6">
+                <div class="mb-6">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-2">CAD - Cadastros</h2>
+                    <p class="text-gray-600">Gestão de clientes, produtos e fornecedores</p>
+                </div>
+
+                <!-- Sub-navigation -->
+                <div class="bg-white p-4 rounded-xl shadow-sm border mb-6">
+                    <div class="flex space-x-4">
+                        <button id="cadClientsBtn" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                            <i class="fas fa-users mr-2"></i>Clientes
+                        </button>
+                        <button id="cadProductsBtn" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">
+                            <i class="fas fa-box mr-2"></i>Produtos
+                        </button>
+                        <button id="cadSuppliersBtn" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">
+                            <i class="fas fa-truck mr-2"></i>Fornecedores
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Clients Management -->
+                <div id="cadClientsContent" class="cad-content active">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-xl font-semibold">Clientes</h3>
+                            <button id="addClientBtn" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
+                                <i class="fas fa-plus mr-2"></i>Novo Cliente
+                            </button>
+                        </div>
+                        <div class="data-table">
+                            <table id="clientsTable" class="w-full">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Telefone</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="clientsTableBody" class="bg-white divide-y divide-gray-200">
+                                    <!-- Client rows will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Products Management -->
+                <div id="cadProductsContent" class="cad-content">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-xl font-semibold">Produtos</h3>
+                            <button id="addProductBtn" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600">
+                                <i class="fas fa-plus mr-2"></i>Novo Produto
+                            </button>
+                        </div>
+                        <div class="data-table">
+                            <table id="productsTable" class="w-full">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Código</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descrição</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoria</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Preço</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estoque</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="productsTableBody" class="bg-white divide-y divide-gray-200">
+                                    <!-- Product rows will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Suppliers Management -->
+                <div id="cadSuppliersContent" class="cad-content">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-xl font-semibold">Fornecedores</h3>
+                            <button id="addSupplierBtn" class="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600">
+                                <i class="fas fa-plus mr-2"></i>Novo Fornecedor
+                            </button>
+                        </div>
+                        <div class="data-table">
+                            <table id="suppliersTable" class="w-full">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">CNPJ</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contato</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="suppliersTableBody" class="bg-white divide-y divide-gray-200">
+                                    <!-- Supplier rows will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VND Section -->
+            <div id="vnd-section" class="form-section p-6">
+                <div class="mb-6">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-2">VND - Vendas</h2>
+                    <p class="text-gray-600">Gestão de vendas, pedidos e CRM</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Sales Pipeline -->
+                    <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border">
+                        <h3 class="text-xl font-semibold mb-4">Pipeline de Vendas</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div class="bg-blue-50 p-4 rounded-lg">
+                                <h4 class="font-medium text-blue-900">Leads</h4>
+                                <p class="text-2xl font-bold text-blue-600">12</p>
+                            </div>
+                            <div class="bg-yellow-50 p-4 rounded-lg">
+                                <h4 class="font-medium text-yellow-900">Propostas</h4>
+                                <p class="text-2xl font-bold text-yellow-600">8</p>
+                            </div>
+                            <div class="bg-green-50 p-4 rounded-lg">
+                                <h4 class="font-medium text-green-900">Negociação</h4>
+                                <p class="text-2xl font-bold text-green-600">5</p>
+                            </div>
+                            <div class="bg-purple-50 p-4 rounded-lg">
+                                <h4 class="font-medium text-purple-900">Fechadas</h4>
+                                <p class="text-2xl font-bold text-purple-600">3</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="bg-white p-6 rounded-xl shadow-sm border">
+                        <h3 class="text-xl font-semibold mb-4">Ações Rápidas</h3>
+                        <div class="space-y-3">
+                            <button class="w-full bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600">
+                                <i class="fas fa-plus mr-2"></i>Novo Pedido
+                            </button>
+                            <button class="w-full bg-green-500 text-white py-3 rounded-lg hover:bg-green-600">
+                                <i class="fas fa-file-invoice mr-2"></i>Gerar Proposta
+                            </button>
+                            <button class="w-full bg-purple-500 text-white py-3 rounded-lg hover:bg-purple-600">
+                                <i class="fas fa-chart-bar mr-2"></i>Relatório Vendas
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- EST Section -->
+            <div id="est-section" class="form-section p-6">
+                <div class="mb-6">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-2">EST - Estoque</h2>
+                    <p class="text-gray-600">Controle de estoque e movimentações</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Stock Levels -->
+                    <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border">
+                        <h3 class="text-xl font-semibold mb-4">Níveis de Estoque</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between p-3 bg-red-50 rounded-lg">
+                                <div>
+                                    <p class="font-medium text-red-900">Produtos em Falta</p>
+                                    <p class="text-sm text-red-600">Necessitam reposição urgente</p>
+                                </div>
+                                <span class="text-2xl font-bold text-red-600">7</span>
+                            </div>
+                            <div class="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
+                                <div>
+                                    <p class="font-medium text-yellow-900">Estoque Baixo</p>
+                                    <p class="text-sm text-yellow-600">Abaixo do nível mínimo</p>
+                                </div>
+                                <span class="text-2xl font-bold text-yellow-600">23</span>
+                            </div>
+                            <div class="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                                <div>
+                                    <p class="font-medium text-green-900">Estoque Normal</p>
+                                    <p class="text-sm text-green-600">Dentro dos níveis adequados</p>
+                                </div>
+                                <span class="text-2xl font-bold text-green-600">456</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stock Actions -->
+                    <div class="bg-white p-6 rounded-xl shadow-sm border">
+                        <h3 class="text-xl font-semibold mb-4">Movimentações</h3>
+                        <div class="space-y-3">
+                            <button class="w-full bg-green-500 text-white py-3 rounded-lg hover:bg-green-600">
+                                <i class="fas fa-plus mr-2"></i>Entrada
+                            </button>
+                            <button class="w-full bg-red-500 text-white py-3 rounded-lg hover:bg-red-600">
+                                <i class="fas fa-minus mr-2"></i>Saída
+                            </button>
+                            <button class="w-full bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600">
+                                <i class="fas fa-exchange-alt mr-2"></i>Transferência
+                            </button>
+                            <button class="w-full bg-purple-500 text-white py-3 rounded-lg hover:bg-purple-600">
+                                <i class="fas fa-inventory mr-2"></i>Inventário
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- IMP Section -->
+            <div id="imp-section" class="form-section p-6">
+                <div class="mb-6">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-2">IMP - Importação</h2>
+                    <p class="text-gray-600">Gestão de importações e processos</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Import Processes -->
+                    <div class="bg-white p-6 rounded-xl shadow-sm border">
+                        <h3 class="text-xl font-semibold mb-4">Processos de Importação</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between p-3 border rounded-lg">
+                                <div>
+                                    <p class="font-medium">Processo #001</p>
+                                    <p class="text-sm text-gray-600">Equipamentos China</p>
+                                </div>
+                                <span class="status-badge status-pending">Em Trânsito</span>
+                            </div>
+                            <div class="flex items-center justify-between p-3 border rounded-lg">
+                                <div>
+                                    <p class="font-medium">Processo #002</p>
+                                    <p class="text-sm text-gray-600">Matéria Prima EUA</p>
+                                </div>
+                                <span class="status-badge status-active">Desembaraçado</span>
+                            </div>
+                            <div class="flex items-center justify-between p-3 border rounded-lg">
+                                <div>
+                                    <p class="font-medium">Processo #003</p>
+                                    <p class="text-sm text-gray-600">Componentes Alemanha</p>
+                                </div>
+                                <span class="status-badge status-inactive">Documentação</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Import Stats -->
+                    <div class="bg-white p-6 rounded-xl shadow-sm border">
+                        <h3 class="text-xl font-semibold mb-4">Estatísticas</h3>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="text-center p-4 bg-blue-50 rounded-lg">
+                                <p class="text-2xl font-bold text-blue-600">24</p>
+                                <p class="text-sm text-blue-900">Processos Ativos</p>
+                            </div>
+                            <div class="text-center p-4 bg-green-50 rounded-lg">
+                                <p class="text-2xl font-bold text-green-600">R$ 2.4M</p>
+                                <p class="text-sm text-green-900">Valor Total</p>
+                            </div>
+                            <div class="text-center p-4 bg-yellow-50 rounded-lg">
+                                <p class="text-2xl font-bold text-yellow-600">15</p>
+                                <p class="text-sm text-yellow-900">Aguardando</p>
+                            </div>
+                            <div class="text-center p-4 bg-purple-50 rounded-lg">
+                                <p class="text-2xl font-bold text-purple-600">45</p>
+                                <p class="text-sm text-purple-900">Dias Médios</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Other sections would continue here... -->
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div id="clientModal" class="modal fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-xl max-w-2xl w-full max-h-screen overflow-y-auto">
+            <div class="p-6 border-b">
+                <h3 class="text-xl font-semibold">Novo Cliente</h3>
+            </div>
+            <form id="clientForm" class="p-6 space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nome/Razão Social</label>
+                        <input type="text" name="nome" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">CPF/CNPJ</label>
+                        <input type="text" name="cpf_cnpj" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                        <input type="email" name="email" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Telefone</label>
+                        <input type="tel" name="telefone" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                </div>
+                <div class="flex justify-end space-x-4 pt-4">
+                    <button type="button" id="cancelClientBtn" class="px-6 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                        Salvar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // System configuration
+        const config = {
+            apiUrl: window.location.hostname === 'localhost' ? 'http://localhost:3001' : 'https://erp-api-clean-r88y1fdz9-nxt-9032fd74.vercel.app',
+            refreshInterval: 30000,
+            environment: window.location.hostname === 'localhost' ? 'development' : 'production'
+        };
+
+        // Global state
+        let currentSection = 'dashboard';
+        let currentCadTab = 'clients';
+        let clientsData = [];
+        let productsData = [];
+        let suppliersData = [];
+        let dashboardData = {};
+
+        // Initialize the system
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeSystem();
+            setupEventListeners();
+            loadDashboardData();
+        });
+
+        function initializeSystem() {
+            console.log('🚀 Sistema ERP NXT inicializado');
+            console.log('🌐 Ambiente:', config.environment);
+            console.log('📡 API URL:', config.apiUrl);
+            
+            // Update environment status
+            document.getElementById('environmentStatus').textContent = 
+                config.environment === 'development' ? '💻 Desenvolvimento' : '🚀 Produção';
+        }
+
+        function setupEventListeners() {
+            // Sidebar navigation
+            document.querySelectorAll('.sidebar-item').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const section = this.getAttribute('href').substring(1);
+                    showSection(section);
+                });
+            });
+
+            // Sidebar toggle
+            document.getElementById('sidebarToggle').addEventListener('click', function() {
+                const sidebar = document.getElementById('sidebar');
+                sidebar.classList.toggle('-translate-x-full');
+            });
+
+            // CAD sub-navigation
+            document.getElementById('cadClientsBtn').addEventListener('click', () => showCadTab('clients'));
+            document.getElementById('cadProductsBtn').addEventListener('click', () => showCadTab('products'));
+            document.getElementById('cadSuppliersBtn').addEventListener('click', () => showCadTab('suppliers'));
+
+            // Modal controls
+            document.getElementById('addClientBtn').addEventListener('click', () => openModal('clientModal'));
+            document.getElementById('cancelClientBtn').addEventListener('click', () => closeModal('clientModal'));
+
+            // Form submissions
+            document.getElementById('clientForm').addEventListener('submit', handleClientSubmit);
+        }
+
+        function showSection(section) {
+            // Hide all sections
+            document.querySelectorAll('.form-section').forEach(sec => {
+                sec.classList.remove('active');
+            });
+
+            // Show selected section
+            document.getElementById(section + '-section').classList.add('active');
+
+            // Update sidebar active state
+            document.querySelectorAll('.sidebar-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            document.querySelector(`[href="#${section}"]`).classList.add('active');
+
+            currentSection = section;
+
+            // Load section data
+            switch(section) {
+                case 'dashboard':
+                    loadDashboardData();
+                    break;
+                case 'cad':
+                    loadCadData();
+                    break;
+                // Add other sections as needed
+            }
+        }
+
+        function showCadTab(tab) {
+            // Hide all CAD content
+            document.querySelectorAll('.cad-content').forEach(content => {
+                content.classList.remove('active');
+            });
+
+            // Show selected content
+            document.getElementById(`cad${tab.charAt(0).toUpperCase() + tab.slice(1)}Content`).classList.add('active');
+
+            // Update button states
+            document.querySelectorAll('[id^="cad"][id$="Btn"]').forEach(btn => {
+                btn.classList.remove('bg-blue-500', 'text-white');
+                btn.classList.add('bg-gray-100', 'text-gray-700');
+            });
+
+            document.getElementById(`cad${tab.charAt(0).toUpperCase() + tab.slice(1)}Btn`).classList.remove('bg-gray-100', 'text-gray-700');
+            document.getElementById(`cad${tab.charAt(0).toUpperCase() + tab.slice(1)}Btn`).classList.add('bg-blue-500', 'text-white');
+
+            currentCadTab = tab;
+
+            // Load tab data
+            switch(tab) {
+                case 'clients':
+                    loadClientsData();
+                    break;
+                case 'products':
+                    loadProductsData();
+                    break;
+                case 'suppliers':
+                    loadSuppliersData();
+                    break;
+            }
+        }
+
+        async function loadDashboardData() {
+            try {
+                // Simulate API calls with mock data
+                const stats = await fetchDashboardStats();
+                updateDashboardStats(stats);
+                
+                const activities = await fetchRecentActivities();
+                updateRecentActivities(activities);
+                
+                initializeCharts();
+            } catch (error) {
+                console.error('Erro ao carregar dados do dashboard:', error);
+                // Load with mock data
+                loadMockDashboardData();
+            }
+        }
+
+        async function fetchDashboardStats() {
+            // Mock data - replace with actual API call
+            return {
+                clients: 247,
+                products: 1847,
+                sales: 156,
+                revenue: 245600
+            };
+        }
+
+        async function fetchRecentActivities() {
+            // Mock data - replace with actual API call
+            return [
+                { id: 1, type: 'client', action: 'Novo cliente cadastrado', description: 'TechCorp Ltda', time: '2 min atrás' },
+                { id: 2, type: 'sale', action: 'Venda realizada', description: 'Pedido #1234 - R$ 2.500,00', time: '15 min atrás' },
+                { id: 3, type: 'product', action: 'Produto atualizado', description: 'Notebook Dell XPS 15', time: '1 hora atrás' },
+                { id: 4, type: 'import', action: 'Importação iniciada', description: 'Processo #001 - China', time: '2 horas atrás' }
+            ];
+        }
+
+        function updateDashboardStats(stats) {
+            document.getElementById('clientsCount').textContent = stats.clients.toLocaleString();
+            document.getElementById('productsCount').textContent = stats.products.toLocaleString();
+            document.getElementById('salesCount').textContent = stats.sales.toLocaleString();
+            document.getElementById('revenueCount').textContent = `R$ ${stats.revenue.toLocaleString()}`;
+        }
+
+        function updateRecentActivities(activities) {
+            const container = document.getElementById('recentActivity');
+            container.innerHTML = activities.map(activity => `
+                <div class="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                            <i class="fas fa-${getActivityIcon(activity.type)} text-white text-sm"></i>
+                        </div>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-sm font-medium text-gray-900">${activity.action}</p>
+                        <p class="text-sm text-gray-500">${activity.description}</p>
+                    </div>
+                    <div class="text-xs text-gray-400">${activity.time}</div>
+                </div>
+            `).join('');
+        }
+
+        function getActivityIcon(type) {
+            const icons = {
+                client: 'user',
+                sale: 'shopping-cart',
+                product: 'box',
+                import: 'ship'
+            };
+            return icons[type] || 'info';
+        }
+
+        function initializeCharts() {
+            // Sales Chart
+            const salesCtx = document.getElementById('salesChart').getContext('2d');
+            new Chart(salesCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'],
+                    datasets: [{
+                        label: 'Vendas',
+                        data: [120, 190, 300, 250, 220, 300],
+                        borderColor: 'rgb(59, 130, 246)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // Products Chart
+            const productsCtx = document.getElementById('productsChart').getContext('2d');
+            new Chart(productsCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Eletrônicos', 'Roupas', 'Casa', 'Outros'],
+                    datasets: [{
+                        data: [45, 25, 20, 10],
+                        backgroundColor: [
+                            'rgb(59, 130, 246)',
+                            'rgb(34, 197, 94)',
+                            'rgb(251, 191, 36)',
+                            'rgb(168, 85, 247)'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        function loadMockDashboardData() {
+            updateDashboardStats({
+                clients: 247,
+                products: 1847,
+                sales: 156,
+                revenue: 245600
+            });
+            
+            updateRecentActivities([
+                { id: 1, type: 'client', action: 'Sistema iniciado', description: 'Dashboard carregado com sucesso', time: 'agora' }
+            ]);
+        }
+
+        function loadCadData() {
+            if (currentCadTab === 'clients') {
+                loadClientsData();
+            } else if (currentCadTab === 'products') {
+                loadProductsData();
+            } else if (currentCadTab === 'suppliers') {
+                loadSuppliersData();
+            }
+        }
+
+        function loadClientsData() {
+            // Mock data - replace with actual API call
+            const clients = [
+                { id: 1, name: 'João Silva', email: 'joao@email.com', phone: '(11) 99999-9999', status: 'active' },
+                { id: 2, name: 'Maria Santos', email: 'maria@email.com', phone: '(11) 88888-8888', status: 'active' },
+                { id: 3, name: 'TechCorp Ltda', email: 'contato@techcorp.com', phone: '(11) 77777-7777', status: 'inactive' }
+            ];
+
+            const tbody = document.getElementById('clientsTableBody');
+            tbody.innerHTML = clients.map(client => `
+                <tr>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${client.name}</td>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">${client.email}</td>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">${client.phone}</td>
+                    <td class="px-4 py-4 whitespace-nowrap">
+                        <span class="status-badge ${client.status === 'active' ? 'status-active' : 'status-inactive'}">
+                            ${client.status === 'active' ? 'Ativo' : 'Inativo'}
+                        </span>
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">
+                        <button class="text-blue-600 hover:text-blue-900 mr-2">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="text-red-600 hover:text-red-900">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function loadProductsData() {
+            // Mock data - replace with actual API call
+            const products = [
+                { id: 1, code: 'PROD001', description: 'Notebook Dell XPS 15', category: 'Eletrônicos', price: 5999.99, stock: 25 },
+                { id: 2, code: 'PROD002', description: 'Mouse Logitech MX Master', category: 'Eletrônicos', price: 299.99, stock: 150 },
+                { id: 3, code: 'PROD003', description: 'Cadeira Gamer Pro', category: 'Móveis', price: 899.99, stock: 8 }
+            ];
+
+            const tbody = document.getElementById('productsTableBody');
+            tbody.innerHTML = products.map(product => `
+                <tr>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${product.code}</td>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">${product.description}</td>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">${product.category}</td>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">R$ ${product.price.toFixed(2)}</td>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">${product.stock}</td>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">
+                        <button class="text-blue-600 hover:text-blue-900 mr-2">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="text-red-600 hover:text-red-900">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function loadSuppliersData() {
+            // Mock data - replace with actual API call
+            const suppliers = [
+                { id: 1, name: 'Fornecedor ABC Ltda', cnpj: '12.345.678/0001-90', contact: 'João Silva', status: 'active' },
+                { id: 2, name: 'Distribuidora XYZ', cnpj: '98.765.432/0001-10', contact: 'Maria Santos', status: 'active' },
+                { id: 3, name: 'Importadora Tech', cnpj: '11.222.333/0001-44', contact: 'Carlos Oliveira', status: 'inactive' }
+            ];
+
+            const tbody = document.getElementById('suppliersTableBody');
+            tbody.innerHTML = suppliers.map(supplier => `
+                <tr>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${supplier.name}</td>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">${supplier.cnpj}</td>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">${supplier.contact}</td>
+                    <td class="px-4 py-4 whitespace-nowrap">
+                        <span class="status-badge ${supplier.status === 'active' ? 'status-active' : 'status-inactive'}">
+                            ${supplier.status === 'active' ? 'Ativo' : 'Inativo'}
+                        </span>
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">
+                        <button class="text-blue-600 hover:text-blue-900 mr-2">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="text-red-600 hover:text-red-900">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.remove('hidden');
+            document.getElementById(modalId).classList.add('flex');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+            document.getElementById(modalId).classList.remove('flex');
+        }
+
+        function handleClientSubmit(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const clientData = {
+                name: formData.get('nome'),
+                cpf_cnpj: formData.get('cpf_cnpj'),
+                email: formData.get('email'),
+                phone: formData.get('telefone')
+            };
+
+            // Here you would normally send to API
+            console.log('Novo cliente:', clientData);
+            
+            // Close modal and refresh data
+            closeModal('clientModal');
+            loadClientsData();
+            
+            // Reset form
+            e.target.reset();
+        }
+
+        // Auto-refresh dashboard data
+        setInterval(() => {
+            if (currentSection === 'dashboard') {
+                loadDashboardData();
+            }
+        }, config.refreshInterval);
+
+        // Global search functionality
+        document.getElementById('globalSearch').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            if (searchTerm.length >= 3) {
+                // Implement global search
+                console.log('Searching for:', searchTerm);
+            }
+        });
+    </script>
+</body>
+</html>
