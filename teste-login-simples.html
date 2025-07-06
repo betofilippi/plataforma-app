@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Teste Login Simples</title>
+</head>
+<body>
+    <h1>Teste Login - API Direta</h1>
+    <button onclick="testarAPI()">Testar API</button>
+    <div id="resultado"></div>
+
+    <script>
+        const API_URL = 'https://erp-api-clean-r88y1fdz9-nxt-9032fd74.vercel.app'
+        
+        async function testarAPI() {
+            const div = document.getElementById('resultado')
+            div.innerHTML = 'Testando...'
+            
+            try {
+                console.log('Testando API:', API_URL)
+                
+                const response = await fetch(API_URL + '/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: 'admin@plataforma.app',
+                        password: 'admin123'
+                    })
+                })
+                
+                const data = await response.json()
+                
+                if (response.ok) {
+                    div.innerHTML = `
+                        <h2>✅ SUCCESS!</h2>
+                        <p>Status: ${response.status}</p>
+                        <p>User: ${data.data.user.email}</p>
+                        <p>Token: ${data.data.access_token}</p>
+                    `
+                } else {
+                    div.innerHTML = `
+                        <h2>❌ API Error</h2>
+                        <p>Status: ${response.status}</p>
+                        <p>Message: ${data.message}</p>
+                    `
+                }
+            } catch (error) {
+                div.innerHTML = `
+                    <h2>❌ FETCH ERROR</h2>
+                    <p>Error: ${error.name}</p>
+                    <p>Message: ${error.message}</p>
+                    <p>Stack: ${error.stack}</p>
+                `
+                console.error('Fetch error:', error)
+            }
+        }
+        
+        // Test automatically
+        setTimeout(testarAPI, 1000)
+    </script>
+</body>
+</html>

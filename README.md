@@ -280,7 +280,7 @@ Empresa especializada em **equipamentos de mobilidade elétrica**, atuando na im
 
 - **Sistema Principal**: https://plataforma.app  
 - **Frontend ERP**: https://plataforma.app/frontend-correto.html  
-- **API Backend**: https://erp-api-clean-gvqpypebh-nxt-9032fd74.vercel.app  
+- **API Backend**: https://erp-api-clean-r88y1fdz9-nxt-9032fd74.vercel.app  
 - **Login Demo**: admin@plataforma.app / admin123
 
 ✅ **Status**: Login funcionando - Erro "failed to fetch" resolvido!
