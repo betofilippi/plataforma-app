@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎯 TESTE FINAL - Sem Interferências</title>
+    <style>
+        body { font-family: Arial; margin: 20px; background: #f0f8ff; }
+        .log { background: #fff; padding: 10px; margin: 5px 0; border-left: 4px solid #007bff; border-radius: 4px; }
+        .error { border-left-color: #dc3545; background: #f8d7da; }
+        .success { border-left-color: #28a745; background: #d4edda; }
+        button { background: #007bff; color: white; border: none; padding: 12px 24px; margin: 10px 5px; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        h1 { color: #007bff; text-align: center; }
+        .status { padding: 15px; margin: 10px 0; border-radius: 8px; text-align: center; font-weight: bold; }
+        .status.ok { background: #d4edda; color: #155724; }
+        .status.error { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <h1>🎯 TESTE FINAL - SEM INTERFERÊNCIAS</h1>
+    
+    <div id="status" class="status">🔄 Verificando protocolo...</div>
+    
+    <div>
+        <button onclick="testeSimples()">🧪 Teste Simples</button>
+        <button onclick="testeLogin()">🔐 Teste Login</button>
+        <button onclick="limpar()">🗑️ Limpar</button>
+    </div>
+    
+    <div id="logs"></div>
+
+    <script>
+        const API_URL = 'https://erp-api-clean-r88y1fdz9-nxt-9032fd74.vercel.app'
+        
+        function log(message, type = 'log') {
+            const logs = document.getElementById('logs')
+            const div = document.createElement('div')
+            div.className = `log ${type}`
+            div.innerHTML = `<strong>[${new Date().toLocaleTimeString()}]</strong> ${message}`
+            logs.appendChild(div)
+            
+            // Console original também
+            if (type === 'error') {
+                console.error(message)
+            } else if (type === 'success') {
+                console.log('✅', message)
+            } else {
+                console.log(message)
+            }
+        }
+        
+        function limpar() {
+            document.getElementById('logs').innerHTML = ''
+        }
+        
+        // Verificar protocolo
+        function checkProtocol() {
+            const status = document.getElementById('status')
+            const protocol = window.location.protocol
+            const hostname = window.location.hostname
+            
+            if (protocol === 'http:' && hostname === 'localhost') {
+                status.className = 'status ok'
+                status.textContent = '✅ HTTP Localhost - CORS deve funcionar'
+                return true
+            } else if (protocol === 'file:') {
+                status.className = 'status error'
+                status.textContent = '❌ File:// Protocol - CORS bloqueado'
+                return false
+            } else {
+                status.className = 'status ok'
+                status.textContent = `✅ ${protocol}//${hostname} - CORS deve funcionar`
+                return true
+            }
+        }
+        
+        async function testeSimples() {
+            log('🚀 Iniciando teste simples da API...', 'log')
+            log(`URL da API: ${API_URL}`, 'log')
+            
+            try {
+                log('📡 Fazendo requisição para /health...', 'log')
+                
+                const response = await fetch(`${API_URL}/health`)
+                
+                log(`✅ Resposta recebida: ${response.status} ${response.statusText}`, 'success')
+                
+                const data = await response.json()
+                log(`📄 Dados: ${JSON.stringify(data)}`, 'success')
+                
+                if (data.status === 'healthy') {
+                    log('🎉 API está funcionando!', 'success')
+                } else {
+                    log('⚠️ API respondeu mas com status diferente', 'error')
+                }
+                
+            } catch (error) {
+                log(`❌ ERRO CAPTURADO:`, 'error')
+                log(`Tipo: ${error.constructor.name}`, 'error')
+                log(`Nome: ${error.name}`, 'error')
+                log(`Mensagem: "${error.message}"`, 'error')
+                log(`Stack: ${error.stack}`, 'error')
+                
+                // Análise específica
+                if (error.message === 'Failed to fetch') {
+                    log('🔍 Este é o famoso "Failed to fetch"', 'error')
+                    log('Possíveis causas:', 'log')
+                    log('1. CORS bloqueado pelo navegador', 'log')
+                    log('2. API indisponível', 'log')
+                    log('3. Rede offline/firewall', 'log')
+                    log('4. Extensões do navegador', 'log')
+                }
+            }
+        }
+        
+        async function testeLogin() {
+            log('🔐 Iniciando teste de login...', 'log')
+            
+            const payload = {
+                email: 'admin@plataforma.app',
+                password: 'admin123'
+            }
+            
+            try {
+                log('📤 Enviando dados de login...', 'log')
+                log(`Payload: ${JSON.stringify(payload)}`, 'log')
+                
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload)
+                })
+                
+                log(`📥 Resposta: ${response.status} ${response.statusText}`, 'success')
+                
+                const data = await response.json()
+                
+                if (data.success) {
+                    log('🎉 LOGIN FUNCIONOU!', 'success')
+                    log(`Usuário: ${data.data.user.email}`, 'success')
+                    log(`Nome: ${data.data.user.first_name} ${data.data.user.last_name}`, 'success')
+                    log(`Role: ${data.data.user.role}`, 'success')
+                    log(`Token: ${data.data.access_token.substring(0, 30)}...`, 'success')
+                    log('✅ PROBLEMA RESOLVIDO - Sistema funcionando!', 'success')
+                } else {
+                    log(`❌ Login falhou: ${data.message}`, 'error')
+                }
+                
+            } catch (error) {
+                log(`❌ ERRO NO LOGIN:`, 'error')
+                log(`Tipo: ${error.constructor.name}`, 'error')
+                log(`Nome: ${error.name}`, 'error')
+                log(`Mensagem: "${error.message}"`, 'error')
+                log(`Stack: ${error.stack}`, 'error')
+                
+                if (error.message === 'Failed to fetch') {
+                    log('💡 SOLUÇÃO: Este é o erro de CORS!', 'error')
+                    log('Verifique se está acessando via http://localhost', 'log')
+                }
+            }
+        }
+        
+        // Inicialização
+        const protocolOk = checkProtocol()
+        log(`🌐 Carregado em: ${window.location.href}`, 'log')
+        log(`🔒 Protocolo: ${window.location.protocol}`, 'log')
+        log(`📱 Navegador: ${navigator.userAgent.match(/Chrome|Firefox|Safari|Edge/)[0]}`, 'log')
+        log(`🌍 Online: ${navigator.onLine}`, 'log')
+        
+        // Auto-teste se protocolo OK
+        if (protocolOk) {
+            setTimeout(() => {
+                log('🤖 Executando auto-teste...', 'log')
+                testeSimples()
+            }, 2000)
+        } else {
+            log('⚠️ Protocolo file:// detectado - pule para HTTP server', 'error')
+        }
+    </script>
+</body>
+</html>
