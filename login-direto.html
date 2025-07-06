@@ -50,7 +50,7 @@
                             id="email" 
                             name="email"
                             required
-                            value="admin@plataforma.app"
+                            placeholder="seu.email@empresa.com"
                             class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             placeholder="seu.email@empresa.com"
                         >
@@ -66,7 +66,7 @@
                                 id="password" 
                                 name="password"
                                 required
-                                value="admin123"
+                                placeholder="Digite sua senha"
                                 class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-12"
                                 placeholder="Digite sua senha"
                             >
@@ -93,14 +93,6 @@
                     </button>
                 </form>
 
-                <!-- Demo Alert -->
-                <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                    <p class="text-sm text-blue-800">
-                        <strong>💡 Login demo:</strong><br>
-                        Email: admin@plataforma.app<br>
-                        Senha: admin123
-                    </p>
-                </div>
 
                 <!-- Status -->
                 <div id="status" class="mt-4"></div>
@@ -149,17 +141,9 @@
         </div>
     </div>
 
+    <script src="./api-client.js"></script>
     <script>
-        // Detectar ambiente
-        const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-        const isVercel = window.location.hostname.includes('vercel.app') || window.location.hostname.includes('plataforma.app');
-        
-        // URLs da API para fallback
-        const API_URLS = [
-            'https://erp-api-clean-r88y1fdz9-nxt-9032fd74.vercel.app',
-            'https://erp-api-clean-gvqpypebh-nxt-9032fd74.vercel.app',
-            'https://erp-api-clean-7tc7xr5ia-nxt-9032fd74.vercel.app'
-        ];
+        // Sistema ERP Real - Sem Mock Data
 
         function togglePassword() {
             const password = document.getElementById('password');
@@ -198,95 +182,28 @@
             }
         }
 
-        async function tryLogin(email, password, apiUrl) {
-            console.log('🔐 Tentando login...', { email, apiUrl });
-            
-            const response = await fetch(`${apiUrl}/auth/login`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ email, password })
-            });
-
-            console.log('📥 Resposta:', response.status, response.statusText);
-            
-            const data = await response.json();
-            console.log('📄 Dados:', data);
-
-            if (response.ok && data.success) {
-                return { success: true, data: data.data };
-            } else {
-                throw new Error(data.message || 'Erro no login');
-            }
-        }
-
-        // Simular login para demonstração (quando APIs não estão disponíveis)
-        function simulateLogin(email, password) {
-            if (email === 'admin@plataforma.app' && password === 'admin123') {
-                return {
-                    success: true,
-                    data: {
-                        access_token: 'demo_token_' + Date.now(),
-                        user: {
-                            id: 1,
-                            email: 'admin@plataforma.app',
-                            first_name: 'Admin',
-                            last_name: 'Sistema',
-                            role: 'admin'
-                        }
-                    }
-                };
-            }
-            throw new Error('Credenciais inválidas');
-        }
-
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
 
+            if (!email || !password) {
+                setStatus('❌ Por favor, preencha email e senha.', 'error');
+                return;
+            }
+
             setLoading(true);
             setStatus('Conectando com o sistema...', 'info');
 
             try {
-                let result = null;
-                let lastError = null;
-
-                // Tentar APIs reais primeiro
-                for (let i = 0; i < API_URLS.length; i++) {
-                    const apiUrl = API_URLS[i];
-                    setStatus(`Tentando API ${i + 1}/${API_URLS.length}...`, 'info');
-                    
-                    try {
-                        result = await tryLogin(email, password, apiUrl);
-                        console.log(`✅ API funcionou: ${apiUrl}`);
-                        break;
-                    } catch (error) {
-                        console.log(`❌ API falhou: ${apiUrl}`, error.message);
-                        lastError = error;
-                        
-                        if (i < API_URLS.length - 1) {
-                            await new Promise(resolve => setTimeout(resolve, 1000));
-                        }
-                    }
-                }
-
-                // Se todas as APIs falharam, usar login simulado
-                if (!result) {
-                    console.log('🎭 Usando login simulado...');
-                    setStatus('APIs indisponíveis. Usando modo demonstração...', 'info');
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-                    result = simulateLogin(email, password);
-                }
-
-                if (result && result.success) {
-                    // Salvar dados de autenticação
-                    localStorage.setItem('auth_token', result.data.access_token);
-                    localStorage.setItem('user_data', JSON.stringify(result.data.user));
-                    
-                    setStatus(`🎉 Login realizado com sucesso! Bem-vindo, ${result.data.user.first_name}!`, 'success');
+                console.log('🔐 Tentando login real via API...');
+                
+                const result = await window.erpApi.login(email, password);
+                
+                if (result.success) {
+                    const userName = result.data.user.first_name || result.data.user.name || 'Usuário';
+                    setStatus(`🎉 Login realizado com sucesso! Bem-vindo, ${userName}!`, 'success');
                     
                     // Redirecionar para o sistema ERP
                     setTimeout(() => {
@@ -296,11 +213,11 @@
                         }, 1000);
                     }, 1500);
                 } else {
-                    throw new Error('Falha na autenticação');
+                    throw new Error(result.message || 'Falha na autenticação');
                 }
             } catch (error) {
-                console.error('❌ Erro:', error);
-                setStatus(`❌ Erro: ${error.message}`, 'error');
+                console.error('❌ Erro no login:', error);
+                setStatus(`❌ ${error.message}`, 'error');
             } finally {
                 setLoading(false);
             }

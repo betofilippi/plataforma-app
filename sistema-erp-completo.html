@@ -332,22 +332,22 @@
                     <!-- Sales Pipeline -->
                     <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border">
                         <h3 class="text-xl font-semibold mb-4">Pipeline de Vendas</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div id="salesPipeline" class="grid grid-cols-1 md:grid-cols-4 gap-4">
                             <div class="bg-blue-50 p-4 rounded-lg">
                                 <h4 class="font-medium text-blue-900">Leads</h4>
-                                <p class="text-2xl font-bold text-blue-600">12</p>
+                                <p class="text-2xl font-bold text-blue-600" id="leadsCount">0</p>
                             </div>
                             <div class="bg-yellow-50 p-4 rounded-lg">
                                 <h4 class="font-medium text-yellow-900">Propostas</h4>
-                                <p class="text-2xl font-bold text-yellow-600">8</p>
+                                <p class="text-2xl font-bold text-yellow-600" id="proposalsCount">0</p>
                             </div>
                             <div class="bg-green-50 p-4 rounded-lg">
                                 <h4 class="font-medium text-green-900">Negociação</h4>
-                                <p class="text-2xl font-bold text-green-600">5</p>
+                                <p class="text-2xl font-bold text-green-600" id="negotiationCount">0</p>
                             </div>
                             <div class="bg-purple-50 p-4 rounded-lg">
                                 <h4 class="font-medium text-purple-900">Fechadas</h4>
-                                <p class="text-2xl font-bold text-purple-600">3</p>
+                                <p class="text-2xl font-bold text-purple-600" id="closedCount">0</p>
                             </div>
                         </div>
                     </div>
@@ -381,27 +381,27 @@
                     <!-- Stock Levels -->
                     <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border">
                         <h3 class="text-xl font-semibold mb-4">Níveis de Estoque</h3>
-                        <div class="space-y-4">
+                        <div id="stockLevels" class="space-y-4">
                             <div class="flex items-center justify-between p-3 bg-red-50 rounded-lg">
                                 <div>
                                     <p class="font-medium text-red-900">Produtos em Falta</p>
                                     <p class="text-sm text-red-600">Necessitam reposição urgente</p>
                                 </div>
-                                <span class="text-2xl font-bold text-red-600">7</span>
+                                <span class="text-2xl font-bold text-red-600" id="outOfStockCount">0</span>
                             </div>
                             <div class="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
                                 <div>
                                     <p class="font-medium text-yellow-900">Estoque Baixo</p>
                                     <p class="text-sm text-yellow-600">Abaixo do nível mínimo</p>
                                 </div>
-                                <span class="text-2xl font-bold text-yellow-600">23</span>
+                                <span class="text-2xl font-bold text-yellow-600" id="lowStockCount">0</span>
                             </div>
                             <div class="flex items-center justify-between p-3 bg-green-50 rounded-lg">
                                 <div>
                                     <p class="font-medium text-green-900">Estoque Normal</p>
                                     <p class="text-sm text-green-600">Dentro dos níveis adequados</p>
                                 </div>
-                                <span class="text-2xl font-bold text-green-600">456</span>
+                                <span class="text-2xl font-bold text-green-600" id="normalStockCount">0</span>
                             </div>
                         </div>
                     </div>
@@ -438,49 +438,29 @@
                     <!-- Import Processes -->
                     <div class="bg-white p-6 rounded-xl shadow-sm border">
                         <h3 class="text-xl font-semibold mb-4">Processos de Importação</h3>
-                        <div class="space-y-4">
-                            <div class="flex items-center justify-between p-3 border rounded-lg">
-                                <div>
-                                    <p class="font-medium">Processo #001</p>
-                                    <p class="text-sm text-gray-600">Equipamentos China</p>
-                                </div>
-                                <span class="status-badge status-pending">Em Trânsito</span>
-                            </div>
-                            <div class="flex items-center justify-between p-3 border rounded-lg">
-                                <div>
-                                    <p class="font-medium">Processo #002</p>
-                                    <p class="text-sm text-gray-600">Matéria Prima EUA</p>
-                                </div>
-                                <span class="status-badge status-active">Desembaraçado</span>
-                            </div>
-                            <div class="flex items-center justify-between p-3 border rounded-lg">
-                                <div>
-                                    <p class="font-medium">Processo #003</p>
-                                    <p class="text-sm text-gray-600">Componentes Alemanha</p>
-                                </div>
-                                <span class="status-badge status-inactive">Documentação</span>
-                            </div>
+                        <div id="importProcesses" class="space-y-4">
+                            <!-- Import processes will be loaded here -->
                         </div>
                     </div>
 
                     <!-- Import Stats -->
                     <div class="bg-white p-6 rounded-xl shadow-sm border">
                         <h3 class="text-xl font-semibold mb-4">Estatísticas</h3>
-                        <div class="grid grid-cols-2 gap-4">
+                        <div id="importStats" class="grid grid-cols-2 gap-4">
                             <div class="text-center p-4 bg-blue-50 rounded-lg">
-                                <p class="text-2xl font-bold text-blue-600">24</p>
+                                <p class="text-2xl font-bold text-blue-600" id="activeProcessesCount">0</p>
                                 <p class="text-sm text-blue-900">Processos Ativos</p>
                             </div>
                             <div class="text-center p-4 bg-green-50 rounded-lg">
-                                <p class="text-2xl font-bold text-green-600">R$ 2.4M</p>
+                                <p class="text-2xl font-bold text-green-600" id="totalValueCount">R$ 0</p>
                                 <p class="text-sm text-green-900">Valor Total</p>
                             </div>
                             <div class="text-center p-4 bg-yellow-50 rounded-lg">
-                                <p class="text-2xl font-bold text-yellow-600">15</p>
+                                <p class="text-2xl font-bold text-yellow-600" id="pendingProcessesCount">0</p>
                                 <p class="text-sm text-yellow-900">Aguardando</p>
                             </div>
                             <div class="text-center p-4 bg-purple-50 rounded-lg">
-                                <p class="text-2xl font-bold text-purple-600">45</p>
+                                <p class="text-2xl font-bold text-purple-600" id="averageDaysCount">0</p>
                                 <p class="text-sm text-purple-900">Dias Médios</p>
                             </div>
                         </div>
@@ -529,6 +509,7 @@
         </div>
     </div>
 
+    <script src="./api-client.js"></script>
     <script>
         // System configuration
         const config = {
@@ -659,6 +640,15 @@
                 case 'cad':
                     loadCadData();
                     break;
+                case 'vnd':
+                    loadVendasData();
+                    break;
+                case 'est':
+                    loadEstoqueData();
+                    break;
+                case 'imp':
+                    loadImportacaoData();
+                    break;
                 // Add other sections as needed
             }
         }
@@ -699,39 +689,32 @@
 
         async function loadDashboardData() {
             try {
-                // Simulate API calls with mock data
+                showLoading('dashboard-section');
+                
                 const stats = await fetchDashboardStats();
                 updateDashboardStats(stats);
                 
                 const activities = await fetchRecentActivities();
                 updateRecentActivities(activities);
                 
-                initializeCharts();
+                await initializeCharts();
+                
+                hideLoading('dashboard-section');
             } catch (error) {
                 console.error('Erro ao carregar dados do dashboard:', error);
-                // Load with mock data
-                loadMockDashboardData();
+                hideLoading('dashboard-section');
+                showError('dashboard-section', `Erro ao carregar dados: ${error.message}`);
             }
         }
 
         async function fetchDashboardStats() {
-            // Mock data - replace with actual API call
-            return {
-                clients: 247,
-                products: 1847,
-                sales: 156,
-                revenue: 245600
-            };
+            const response = await window.erpApi.getDashboardStats();
+            return response.data;
         }
 
         async function fetchRecentActivities() {
-            // Mock data - replace with actual API call
-            return [
-                { id: 1, type: 'client', action: 'Novo cliente cadastrado', description: 'TechCorp Ltda', time: '2 min atrás' },
-                { id: 2, type: 'sale', action: 'Venda realizada', description: 'Pedido #1234 - R$ 2.500,00', time: '15 min atrás' },
-                { id: 3, type: 'product', action: 'Produto atualizado', description: 'Notebook Dell XPS 15', time: '1 hora atrás' },
-                { id: 4, type: 'import', action: 'Importação iniciada', description: 'Processo #001 - China', time: '2 horas atrás' }
-            ];
+            const response = await window.erpApi.getDashboardActivities();
+            return response.data;
         }
 
         function updateDashboardStats(stats) {
@@ -769,77 +752,89 @@
             return icons[type] || 'info';
         }
 
-        function initializeCharts() {
-            // Sales Chart
-            const salesCtx = document.getElementById('salesChart').getContext('2d');
-            new Chart(salesCtx, {
-                type: 'line',
-                data: {
-                    labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'],
-                    datasets: [{
-                        label: 'Vendas',
-                        data: [120, 190, 300, 250, 220, 300],
-                        borderColor: 'rgb(59, 130, 246)',
-                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
+        async function initializeCharts() {
+            try {
+                const authToken = localStorage.getItem('auth_token');
+                
+                // Get sales chart data
+                const salesResponse = await fetch(`${config.apiUrl}/dashboard/charts/sales`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const salesData = salesResponse.ok ? await salesResponse.json() : null;
+                
+                // Get products chart data
+                const productsResponse = await fetch(`${config.apiUrl}/dashboard/charts/products`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const productsData = productsResponse.ok ? await productsResponse.json() : null;
+                
+                // Sales Chart
+                const salesCtx = document.getElementById('salesChart').getContext('2d');
+                new Chart(salesCtx, {
+                    type: 'line',
+                    data: {
+                        labels: salesData?.data?.labels || ['Sem dados'],
+                        datasets: [{
+                            label: 'Vendas',
+                            data: salesData?.data?.values || [0],
+                            borderColor: 'rgb(59, 130, 246)',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            tension: 0.4
+                        }]
                     },
-                    scales: {
-                        y: {
-                            beginAtZero: true
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
                         }
                     }
-                }
-            });
+                });
 
-            // Products Chart
-            const productsCtx = document.getElementById('productsChart').getContext('2d');
-            new Chart(productsCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Eletrônicos', 'Roupas', 'Casa', 'Outros'],
-                    datasets: [{
-                        data: [45, 25, 20, 10],
-                        backgroundColor: [
-                            'rgb(59, 130, 246)',
-                            'rgb(34, 197, 94)',
-                            'rgb(251, 191, 36)',
-                            'rgb(168, 85, 247)'
-                        ]
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom'
+                // Products Chart
+                const productsCtx = document.getElementById('productsChart').getContext('2d');
+                new Chart(productsCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: productsData?.data?.labels || ['Sem dados'],
+                        datasets: [{
+                            data: productsData?.data?.values || [1],
+                            backgroundColor: productsData?.data?.colors || ['rgb(156, 163, 175)']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
                         }
                     }
-                }
-            });
+                });
+                
+            } catch (error) {
+                console.error('Erro ao carregar dados dos gráficos:', error);
+                // Show empty charts with error message
+                showChartError();
+            }
         }
 
-        function loadMockDashboardData() {
-            updateDashboardStats({
-                clients: 247,
-                products: 1847,
-                sales: 156,
-                revenue: 245600
-            });
-            
-            updateRecentActivities([
-                { id: 1, type: 'client', action: 'Sistema iniciado', description: 'Dashboard carregado com sucesso', time: 'agora' }
-            ]);
-        }
 
         function loadCadData() {
             if (currentCadTab === 'clients') {
@@ -851,94 +846,112 @@
             }
         }
 
-        function loadClientsData() {
-            // Mock data - replace with actual API call
-            const clients = [
-                { id: 1, name: 'João Silva', email: 'joao@email.com', phone: '(11) 99999-9999', status: 'active' },
-                { id: 2, name: 'Maria Santos', email: 'maria@email.com', phone: '(11) 88888-8888', status: 'active' },
-                { id: 3, name: 'TechCorp Ltda', email: 'contato@techcorp.com', phone: '(11) 77777-7777', status: 'inactive' }
-            ];
-
-            const tbody = document.getElementById('clientsTableBody');
-            tbody.innerHTML = clients.map(client => `
-                <tr>
-                    <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${client.name}</td>
-                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">${client.email}</td>
-                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">${client.phone}</td>
-                    <td class="px-4 py-4 whitespace-nowrap">
-                        <span class="status-badge ${client.status === 'active' ? 'status-active' : 'status-inactive'}">
-                            ${client.status === 'active' ? 'Ativo' : 'Inativo'}
-                        </span>
-                    </td>
-                    <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">
-                        <button class="text-blue-600 hover:text-blue-900 mr-2">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="text-red-600 hover:text-red-900">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </td>
-                </tr>
-            `).join('');
+        async function loadClientsData() {
+            try {
+                showLoading('clientsTable');
+                
+                const response = await window.erpApi.getClients();
+                const clients = response.data || [];
+                
+                const tbody = document.getElementById('clientsTableBody');
+                tbody.innerHTML = clients.map(client => `
+                    <tr>
+                        <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${client.name || client.nome}</td>
+                        <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">${client.email}</td>
+                        <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">${client.phone || client.telefone}</td>
+                        <td class="px-4 py-4 whitespace-nowrap">
+                            <span class="status-badge ${client.status === 'active' || client.ativo ? 'status-active' : 'status-inactive'}">
+                                ${client.status === 'active' || client.ativo ? 'Ativo' : 'Inativo'}
+                            </span>
+                        </td>
+                        <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">
+                            <button class="text-blue-600 hover:text-blue-900 mr-2" onclick="editClient(${client.id})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="text-red-600 hover:text-red-900" onclick="deleteClient(${client.id})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+                
+                hideLoading('clientsTable');
+            } catch (error) {
+                console.error('Erro ao carregar clientes:', error);
+                hideLoading('clientsTable');
+                showError('clientsTable', `Erro ao carregar clientes: ${error.message}`);
+            }
         }
 
-        function loadProductsData() {
-            // Mock data - replace with actual API call
-            const products = [
-                { id: 1, code: 'PROD001', description: 'Notebook Dell XPS 15', category: 'Eletrônicos', price: 5999.99, stock: 25 },
-                { id: 2, code: 'PROD002', description: 'Mouse Logitech MX Master', category: 'Eletrônicos', price: 299.99, stock: 150 },
-                { id: 3, code: 'PROD003', description: 'Cadeira Gamer Pro', category: 'Móveis', price: 899.99, stock: 8 }
-            ];
-
-            const tbody = document.getElementById('productsTableBody');
-            tbody.innerHTML = products.map(product => `
-                <tr>
-                    <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${product.code}</td>
-                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">${product.description}</td>
-                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">${product.category}</td>
-                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">R$ ${product.price.toFixed(2)}</td>
-                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">${product.stock}</td>
-                    <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">
-                        <button class="text-blue-600 hover:text-blue-900 mr-2">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="text-red-600 hover:text-red-900">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </td>
-                </tr>
-            `).join('');
+        async function loadProductsData() {
+            try {
+                showLoading('productsTable');
+                
+                const response = await window.erpApi.getProducts();
+                const products = response.data || [];
+                
+                const tbody = document.getElementById('productsTableBody');
+                tbody.innerHTML = products.map(product => `
+                    <tr>
+                        <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${product.code || product.codigo}</td>
+                        <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">${product.description || product.descricao}</td>
+                        <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">${product.category || product.categoria}</td>
+                        <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">R$ ${(product.price || product.preco || 0).toFixed(2)}</td>
+                        <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">${product.stock || product.estoque || 0}</td>
+                        <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">
+                            <button class="text-blue-600 hover:text-blue-900 mr-2" onclick="editProduct(${product.id})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="text-red-600 hover:text-red-900" onclick="deleteProduct(${product.id})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+                
+                hideLoading('productsTable');
+            } catch (error) {
+                console.error('Erro ao carregar produtos:', error);
+                hideLoading('productsTable');
+                showError('productsTable', `Erro ao carregar produtos: ${error.message}`);
+            }
         }
 
-        function loadSuppliersData() {
-            // Mock data - replace with actual API call
-            const suppliers = [
-                { id: 1, name: 'Fornecedor ABC Ltda', cnpj: '12.345.678/0001-90', contact: 'João Silva', status: 'active' },
-                { id: 2, name: 'Distribuidora XYZ', cnpj: '98.765.432/0001-10', contact: 'Maria Santos', status: 'active' },
-                { id: 3, name: 'Importadora Tech', cnpj: '11.222.333/0001-44', contact: 'Carlos Oliveira', status: 'inactive' }
-            ];
-
-            const tbody = document.getElementById('suppliersTableBody');
-            tbody.innerHTML = suppliers.map(supplier => `
-                <tr>
-                    <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${supplier.name}</td>
-                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">${supplier.cnpj}</td>
-                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">${supplier.contact}</td>
-                    <td class="px-4 py-4 whitespace-nowrap">
-                        <span class="status-badge ${supplier.status === 'active' ? 'status-active' : 'status-inactive'}">
-                            ${supplier.status === 'active' ? 'Ativo' : 'Inativo'}
-                        </span>
-                    </td>
-                    <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">
-                        <button class="text-blue-600 hover:text-blue-900 mr-2">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="text-red-600 hover:text-red-900">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </td>
-                </tr>
-            `).join('');
+        async function loadSuppliersData() {
+            try {
+                showLoading('suppliersTable');
+                
+                const response = await window.erpApi.getSuppliers();
+                const suppliers = response.data || [];
+                
+                const tbody = document.getElementById('suppliersTableBody');
+                tbody.innerHTML = suppliers.map(supplier => `
+                    <tr>
+                        <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${supplier.name || supplier.nome}</td>
+                        <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">${supplier.cnpj}</td>
+                        <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">${supplier.contact || supplier.contato}</td>
+                        <td class="px-4 py-4 whitespace-nowrap">
+                            <span class="status-badge ${supplier.status === 'active' || supplier.ativo ? 'status-active' : 'status-inactive'}">
+                                ${supplier.status === 'active' || supplier.ativo ? 'Ativo' : 'Inativo'}
+                            </span>
+                        </td>
+                        <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">
+                            <button class="text-blue-600 hover:text-blue-900 mr-2" onclick="editSupplier(${supplier.id})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="text-red-600 hover:text-red-900" onclick="deleteSupplier(${supplier.id})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+                
+                hideLoading('suppliersTable');
+            } catch (error) {
+                console.error('Erro ao carregar fornecedores:', error);
+                hideLoading('suppliersTable');
+                showError('suppliersTable', `Erro ao carregar fornecedores: ${error.message}`);
+            }
         }
 
         function openModal(modalId) {
@@ -951,38 +964,84 @@
             document.getElementById(modalId).classList.remove('flex');
         }
 
-        function handleClientSubmit(e) {
+        async function handleClientSubmit(e) {
             e.preventDefault();
             
-            const formData = new FormData(e.target);
-            const clientData = {
-                name: formData.get('nome'),
-                cpf_cnpj: formData.get('cpf_cnpj'),
-                email: formData.get('email'),
-                phone: formData.get('telefone')
-            };
+            try {
+                const formData = new FormData(e.target);
+                const clientData = {
+                    name: formData.get('nome'),
+                    cpf_cnpj: formData.get('cpf_cnpj'),
+                    email: formData.get('email'),
+                    phone: formData.get('telefone')
+                };
 
-            // Here you would normally send to API
-            console.log('Novo cliente:', clientData);
-            
-            // Close modal and refresh data
-            closeModal('clientModal');
-            loadClientsData();
-            
-            // Reset form
-            e.target.reset();
+                const response = await window.erpApi.createClient(clientData);
+                
+                console.log('Cliente salvo com sucesso:', response);
+                
+                // Close modal and refresh data
+                closeModal('clientModal');
+                await loadClientsData();
+                
+                // Reset form
+                e.target.reset();
+                
+            } catch (error) {
+                console.error('Erro ao salvar cliente:', error);
+                alert(`Erro ao salvar cliente: ${error.message}`);
+            }
         }
 
         function logout() {
             // Confirmar logout
             if (confirm('Tem certeza que deseja sair do sistema?')) {
-                // Limpar dados de autenticação
-                localStorage.removeItem('auth_token');
-                localStorage.removeItem('user_data');
-                
-                // Redirecionar para página de login
-                window.location.href = './login-direto.html';
+                // Usar API client para logout
+                window.erpApi.logout().then(() => {
+                    window.location.href = './login-direto.html';
+                }).catch(() => {
+                    // Mesmo se o logout falhar, limpar localmente
+                    window.erpApi.clearAuth();
+                    window.location.href = './login-direto.html';
+                });
             }
+        }
+
+        // Função para mostrar erros de carregamento
+        function showError(message) {
+            const errorHtml = `
+                <div class="bg-red-50 border border-red-200 rounded-lg p-4 m-4">
+                    <div class="flex">
+                        <i class="fas fa-exclamation-triangle text-red-400 mr-3 mt-1"></i>
+                        <div>
+                            <h3 class="text-red-800 font-medium">Erro de Conexão</h3>
+                            <p class="text-red-700 text-sm mt-1">${message}</p>
+                            <button onclick="window.location.reload()" class="mt-2 bg-red-600 text-white px-4 py-2 rounded text-sm hover:bg-red-700">
+                                Tentar Novamente
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Mostrar erro no dashboard
+            const container = document.querySelector('.content-area');
+            if (container) {
+                container.innerHTML = errorHtml;
+            }
+        }
+
+        // Função para mostrar loading
+        function showLoading(message = 'Carregando...') {
+            const loadingHtml = `
+                <div class="flex items-center justify-center p-8">
+                    <div class="text-center">
+                        <div class="loading inline-block w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full mb-4"></div>
+                        <p class="text-gray-600">${message}</p>
+                    </div>
+                </div>
+            `;
+            return loadingHtml;
         }
 
         // Auto-refresh dashboard data
@@ -992,6 +1051,237 @@
             }
         }, config.refreshInterval);
 
+        // Loading and error handling functions
+        function showLoading(elementId) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.innerHTML = `
+                    <div class="flex items-center justify-center p-8">
+                        <div class="loading inline-block w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full mr-3"></div>
+                        <span class="text-gray-600">Carregando...</span>
+                    </div>
+                `;
+            }
+        }
+        
+        function hideLoading(elementId) {
+            // Loading is hidden when content is replaced
+        }
+        
+        function showError(elementId, message) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.innerHTML = `
+                    <div class="flex items-center justify-center p-8">
+                        <div class="text-center">
+                            <i class="fas fa-exclamation-triangle text-red-500 text-2xl mb-2"></i>
+                            <p class="text-red-600 font-medium">${message}</p>
+                            <button onclick="location.reload()" class="mt-3 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                                Tentar novamente
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+        
+        function showChartError() {
+            const salesChart = document.getElementById('salesChart');
+            const productsChart = document.getElementById('productsChart');
+            
+            if (salesChart) {
+                salesChart.parentElement.innerHTML = `
+                    <div class="flex items-center justify-center h-full">
+                        <div class="text-center text-gray-500">
+                            <i class="fas fa-chart-line text-2xl mb-2"></i>
+                            <p>Erro ao carregar dados do gráfico</p>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            if (productsChart) {
+                productsChart.parentElement.innerHTML = `
+                    <div class="flex items-center justify-center h-full">
+                        <div class="text-center text-gray-500">
+                            <i class="fas fa-chart-pie text-2xl mb-2"></i>
+                            <p>Erro ao carregar dados do gráfico</p>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+        
+        // Client, product and supplier management functions
+        function editClient(id) {
+            console.log('Editando cliente:', id);
+            // Implement edit functionality
+        }
+        
+        function deleteClient(id) {
+            if (confirm('Tem certeza que deseja excluir este cliente?')) {
+                console.log('Excluindo cliente:', id);
+                // Implement delete functionality
+            }
+        }
+        
+        function editProduct(id) {
+            console.log('Editando produto:', id);
+            // Implement edit functionality
+        }
+        
+        function deleteProduct(id) {
+            if (confirm('Tem certeza que deseja excluir este produto?')) {
+                console.log('Excluindo produto:', id);
+                // Implement delete functionality
+            }
+        }
+        
+        function editSupplier(id) {
+            console.log('Editando fornecedor:', id);
+            // Implement edit functionality
+        }
+        
+        function deleteSupplier(id) {
+            if (confirm('Tem certeza que deseja excluir este fornecedor?')) {
+                console.log('Excluindo fornecedor:', id);
+                // Implement delete functionality
+            }
+        }
+        
+        // Section data loading functions
+        async function loadVendasData() {
+            try {
+                const authToken = localStorage.getItem('auth_token');
+                const response = await fetch(`${config.apiUrl}/vnd/pipeline`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const pipeline = data.data || {};
+                    
+                    document.getElementById('leadsCount').textContent = pipeline.leads || 0;
+                    document.getElementById('proposalsCount').textContent = pipeline.proposals || 0;
+                    document.getElementById('negotiationCount').textContent = pipeline.negotiation || 0;
+                    document.getElementById('closedCount').textContent = pipeline.closed || 0;
+                } else {
+                    showError('salesPipeline', 'Erro ao carregar dados do pipeline de vendas');
+                }
+            } catch (error) {
+                console.error('Erro ao carregar dados de vendas:', error);
+                showError('salesPipeline', `Erro ao carregar dados: ${error.message}`);
+            }
+        }
+        
+        async function loadEstoqueData() {
+            try {
+                const authToken = localStorage.getItem('auth_token');
+                const response = await fetch(`${config.apiUrl}/est/levels`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const levels = data.data || {};
+                    
+                    document.getElementById('outOfStockCount').textContent = levels.out_of_stock || 0;
+                    document.getElementById('lowStockCount').textContent = levels.low_stock || 0;
+                    document.getElementById('normalStockCount').textContent = levels.normal_stock || 0;
+                } else {
+                    showError('stockLevels', 'Erro ao carregar níveis de estoque');
+                }
+            } catch (error) {
+                console.error('Erro ao carregar dados de estoque:', error);
+                showError('stockLevels', `Erro ao carregar dados: ${error.message}`);
+            }
+        }
+        
+        async function loadImportacaoData() {
+            try {
+                const authToken = localStorage.getItem('auth_token');
+                
+                // Load import processes
+                const processesResponse = await fetch(`${config.apiUrl}/imp/processes`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (processesResponse.ok) {
+                    const processesData = await processesResponse.json();
+                    const processes = processesData.data || [];
+                    
+                    const processesContainer = document.getElementById('importProcesses');
+                    processesContainer.innerHTML = processes.map(process => `
+                        <div class="flex items-center justify-between p-3 border rounded-lg">
+                            <div>
+                                <p class="font-medium">${process.code || process.numero}</p>
+                                <p class="text-sm text-gray-600">${process.description || process.descricao}</p>
+                            </div>
+                            <span class="status-badge ${getProcessStatusClass(process.status)}">
+                                ${getProcessStatusText(process.status)}
+                            </span>
+                        </div>
+                    `).join('');
+                }
+                
+                // Load import stats
+                const statsResponse = await fetch(`${config.apiUrl}/imp/stats`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (statsResponse.ok) {
+                    const statsData = await statsResponse.json();
+                    const stats = statsData.data || {};
+                    
+                    document.getElementById('activeProcessesCount').textContent = stats.active || 0;
+                    document.getElementById('totalValueCount').textContent = `R$ ${(stats.total_value || 0).toLocaleString()}`;
+                    document.getElementById('pendingProcessesCount').textContent = stats.pending || 0;
+                    document.getElementById('averageDaysCount').textContent = stats.average_days || 0;
+                }
+                
+            } catch (error) {
+                console.error('Erro ao carregar dados de importação:', error);
+                showError('importProcesses', `Erro ao carregar dados: ${error.message}`);
+                showError('importStats', `Erro ao carregar estatísticas: ${error.message}`);
+            }
+        }
+        
+        function getProcessStatusClass(status) {
+            const statusMap = {
+                'active': 'status-active',
+                'pending': 'status-pending',
+                'inactive': 'status-inactive',
+                'transit': 'status-pending',
+                'cleared': 'status-active',
+                'documentation': 'status-inactive'
+            };
+            return statusMap[status] || 'status-inactive';
+        }
+        
+        function getProcessStatusText(status) {
+            const statusMap = {
+                'active': 'Ativo',
+                'pending': 'Pendente',
+                'inactive': 'Inativo',
+                'transit': 'Em Trânsito',
+                'cleared': 'Desembaraçado',
+                'documentation': 'Documentação'
+            };
+            return statusMap[status] || 'Desconhecido';
+        }
+        
         // Global search functionality
         document.getElementById('globalSearch').addEventListener('input', function(e) {
             const searchTerm = e.target.value.toLowerCase();
