@@ -60,8 +60,23 @@
                             <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
                                 <i class="fas fa-user text-white text-sm"></i>
                             </div>
-                            <span class="text-sm font-medium">Admin</span>
+                            <span class="text-sm font-medium" data-user-name>Admin</span>
+                            <i class="fas fa-chevron-down text-xs"></i>
                         </button>
+                        <div id="userDropdown" class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border hidden">
+                            <div class="py-1">
+                                <button class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-user mr-2"></i>Perfil
+                                </button>
+                                <button class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-cog mr-2"></i>Configurações
+                                </button>
+                                <hr class="my-1">
+                                <button onclick="logout()" class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                                    <i class="fas fa-sign-out-alt mr-2"></i>Sair
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -532,10 +547,38 @@
 
         // Initialize the system
         document.addEventListener('DOMContentLoaded', function() {
+            checkAuthentication();
             initializeSystem();
             setupEventListeners();
             loadDashboardData();
         });
+
+        function checkAuthentication() {
+            const authToken = localStorage.getItem('auth_token');
+            const userData = localStorage.getItem('user_data');
+            
+            if (!authToken || !userData) {
+                // Usuário não autenticado, redirecionar para login
+                window.location.href = './frontend-universal.html';
+                return;
+            }
+            
+            try {
+                const user = JSON.parse(userData);
+                // Atualizar nome do usuário na interface
+                const userNameElements = document.querySelectorAll('[data-user-name]');
+                userNameElements.forEach(el => {
+                    el.textContent = user.first_name || 'Admin';
+                });
+                
+                console.log('✅ Usuário autenticado:', user.first_name);
+            } catch (error) {
+                console.error('Erro ao ler dados do usuário:', error);
+                // Dados corrompidos, redirecionar para login
+                localStorage.clear();
+                window.location.href = './frontend-universal.html';
+            }
+        }
 
         function initializeSystem() {
             console.log('🚀 Sistema ERP NXT inicializado');
@@ -567,6 +610,21 @@
             document.getElementById('cadClientsBtn').addEventListener('click', () => showCadTab('clients'));
             document.getElementById('cadProductsBtn').addEventListener('click', () => showCadTab('products'));
             document.getElementById('cadSuppliersBtn').addEventListener('click', () => showCadTab('suppliers'));
+
+            // User menu dropdown
+            document.getElementById('userMenu').addEventListener('click', function() {
+                const dropdown = document.getElementById('userDropdown');
+                dropdown.classList.toggle('hidden');
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                const userMenu = document.getElementById('userMenu');
+                const dropdown = document.getElementById('userDropdown');
+                if (!userMenu.contains(e.target)) {
+                    dropdown.classList.add('hidden');
+                }
+            });
 
             // Modal controls
             document.getElementById('addClientBtn').addEventListener('click', () => openModal('clientModal'));
@@ -913,6 +971,18 @@
             
             // Reset form
             e.target.reset();
+        }
+
+        function logout() {
+            // Confirmar logout
+            if (confirm('Tem certeza que deseja sair do sistema?')) {
+                // Limpar dados de autenticação
+                localStorage.removeItem('auth_token');
+                localStorage.removeItem('user_data');
+                
+                // Redirecionar para página de login
+                window.location.href = './frontend-universal.html';
+            }
         }
 
         // Auto-refresh dashboard data

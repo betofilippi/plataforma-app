@@ -43,7 +43,7 @@
             <div class="login-form w-full max-w-md p-8 rounded-xl shadow-xl">
                 <div class="text-center mb-8">
                     <h1 class="text-3xl font-bold text-gray-900 mb-2">Fazer Login</h1>
-                    <p id="env-description" class="text-gray-600">Detectando ambiente...</p>
+                    <p id="env-description" class="text-gray-600">Acesso ao Sistema ERP Completo</p>
                 </div>
 
                 <form id="loginForm" class="space-y-6">
@@ -200,7 +200,7 @@
                 banner.textContent = '💻 LOCALHOST - Via Proxy Server';
                 status.textContent = '💻 Localhost';
                 status.className = 'text-sm font-semibold text-green-600';
-                description.textContent = 'Sistema rodando via proxy local';
+                description.textContent = 'Acesso ao Sistema ERP Completo via proxy local';
                 info.className = 'mt-6 p-4 bg-green-50 border border-green-200 rounded-lg';
                 info.innerHTML = `
                     <p class="text-sm text-green-800">
@@ -215,7 +215,7 @@
                 banner.textContent = '🚀 VERCEL - Deploy em Produção';
                 status.textContent = '🚀 Vercel';
                 status.className = 'text-sm font-semibold text-blue-600';
-                description.textContent = 'Sistema em produção no Vercel';
+                description.textContent = 'Acesso ao Sistema ERP Completo em produção';
                 info.className = 'mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg';
                 info.innerHTML = `
                     <p class="text-sm text-blue-800">
@@ -349,7 +349,7 @@
                     setStatus(`🎉 Login realizado com sucesso! Bem-vindo, ${result.data.user.first_name}!`, 'success')
                     
                     setTimeout(() => {
-                        showDashboard()
+                        redirectToCompleteSystem()
                     }, 1500)
                 } else {
                     throw lastError || new Error('Todas as APIs falharam')
@@ -449,6 +449,15 @@
                     </main>
                 </div>
             `
+        }
+
+        function redirectToCompleteSystem() {
+            // Redirecionar para o sistema ERP completo
+            setStatus('🚀 Redirecionando para o Sistema ERP Completo...', 'info')
+            
+            setTimeout(() => {
+                window.location.href = './sistema-erp-completo.html'
+            }, 1000)
         }
 
         function logout() {
