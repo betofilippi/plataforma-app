@@ -19,7 +19,7 @@ class ERPApiClient {
         const hostname = window.location.hostname;
         
         if (hostname === 'localhost' || hostname === '127.0.0.1') {
-            return 'http://localhost:3001';
+            return 'http://localhost:3003';
         } else {
             return 'https://erp-api-clean-r88y1fdz9-nxt-9032fd74.vercel.app';
         }
