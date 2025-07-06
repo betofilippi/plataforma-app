@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔄 TESTE COM PROXY - Resolver CORS</title>
+    <style>
+        body { font-family: Arial; margin: 20px; background: #e8f5e8; }
+        .log { background: #fff; padding: 12px; margin: 8px 0; border-left: 4px solid #28a745; border-radius: 4px; }
+        .error { border-left-color: #dc3545; background: #f8d7da; }
+        .success { border-left-color: #28a745; background: #d4edda; }
+        .info { border-left-color: #17a2b8; background: #d1ecf1; }
+        button { background: #28a745; color: white; border: none; padding: 12px 24px; margin: 10px 5px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #218838; }
+        .proxy-btn { background: #007bff; }
+        .proxy-btn:hover { background: #0056b3; }
+        h1 { color: #28a745; text-align: center; }
+        .status { padding: 15px; margin: 15px 0; border-radius: 8px; text-align: center; font-weight: bold; }
+        .status.ok { background: #d4edda; color: #155724; }
+        .status.error { background: #f8d7da; color: #721c24; }
+        .status.proxy { background: #cce5ff; color: #0066cc; }
+        .instructions { background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 8px; margin: 15px 0; }
+    </style>
+</head>
+<body>
+    <h1>🔄 TESTE COM PROXY - RESOLVER CORS</h1>
+    
+    <div class="instructions">
+        <h3>📋 Antes de testar:</h3>
+        <p>1. Abra um terminal/prompt</p>
+        <p>2. Navegue para: <code>C:\Users\Beto\Desktop\dev\plataforma.app</code></p>
+        <p>3. Execute: <code>node proxy-server.js</code></p>
+        <p>4. Veja a mensagem "Proxy Server rodando!"</p>
+        <p>5. Volte aqui e clique "Testar com Proxy"</p>
+    </div>
+    
+    <div id="status" class="status">🔄 Aguardando início do teste...</div>
+    
+    <div>
+        <button class="proxy-btn" onclick="testarComProxy()">🔄 Testar com Proxy</button>
+        <button onclick="testarDireto()">🌐 Testar Direto (vai falhar)</button>
+        <button onclick="limpar()">🗑️ Limpar</button>
+    </div>
+    
+    <div id="logs"></div>
+
+    <script>
+        const API_DIRETO = 'https://erp-api-clean-r88y1fdz9-nxt-9032fd74.vercel.app'
+        const API_PROXY = 'http://localhost:3001'
+        
+        function log(message, type = 'log') {
+            const logs = document.getElementById('logs')
+            const div = document.createElement('div')
+            div.className = `log ${type}`
+            div.innerHTML = `<strong>[${new Date().toLocaleTimeString()}]</strong> ${message}`
+            logs.appendChild(div)
+            console.log(message)
+        }
+        
+        function updateStatus(message, type = 'ok') {
+            const status = document.getElementById('status')
+            status.className = `status ${type}`
+            status.textContent = message
+        }
+        
+        function limpar() {
+            document.getElementById('logs').innerHTML = ''
+        }
+        
+        async function testarComProxy() {
+            log('🔄 TESTANDO COM PROXY LOCAL...', 'info')
+            updateStatus('🔄 Testando via proxy...', 'proxy')
+            
+            try {
+                // Teste health
+                log('📡 Health check via proxy...', 'info')
+                const healthResponse = await fetch(`${API_PROXY}/health`)
+                const healthData = await healthResponse.json()
+                log(`✅ Health OK: ${JSON.stringify(healthData)}`, 'success')
+                
+                // Teste login
+                log('🔐 Login via proxy...', 'info')
+                const loginResponse = await fetch(`${API_PROXY}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: 'admin@plataforma.app',
+                        password: 'admin123'
+                    })
+                })
+                
+                const loginData = await loginResponse.json()
+                
+                if (loginData.success) {
+                    log('🎉 LOGIN FUNCIONOU VIA PROXY!', 'success')
+                    log(`✅ User: ${loginData.data.user.email}`, 'success')
+                    log(`✅ Token: ${loginData.data.access_token.substring(0, 30)}...`, 'success')
+                    updateStatus('✅ PROXY FUNCIONANDO - CORS resolvido!', 'ok')
+                    
+                    log('💡 SOLUÇÃO ENCONTRADA:', 'success')
+                    log('Use API_URL = "http://localhost:3001" no frontend', 'success')
+                } else {
+                    log(`❌ Login falhou: ${loginData.message}`, 'error')
+                    updateStatus('❌ Proxy conectou mas login falhou', 'error')
+                }
+                
+            } catch (error) {
+                log(`❌ ERRO NO PROXY:`, 'error')
+                log(`Mensagem: "${error.message}"`, 'error')
+                
+                if (error.message === 'Failed to fetch') {
+                    log('⚠️ Proxy não está rodando!', 'error')
+                    log('Execute: node proxy-server.js', 'error')
+                    updateStatus('❌ Proxy não iniciado - Execute: node proxy-server.js', 'error')
+                } else {
+                    updateStatus('❌ Erro no proxy', 'error')
+                }
+            }
+        }
+        
+        async function testarDireto() {
+            log('🌐 TESTANDO DIRETO (vai falhar)...', 'info')
+            updateStatus('🌐 Testando conexão direta...', 'error')
+            
+            try {
+                const response = await fetch(`${API_DIRETO}/health`)
+                const data = await response.json()
+                log(`✅ Funcionou direto: ${JSON.stringify(data)}`, 'success')
+                updateStatus('✅ Conexão direta funcionou!', 'ok')
+                
+            } catch (error) {
+                log(`❌ Failed to fetch (como esperado)`, 'error')
+                log(`Erro: ${error.message}`, 'error')
+                updateStatus('❌ Conexão direta falhou (CORS)', 'error')
+            }
+        }
+        
+        // Info inicial
+        log(`🌐 Carregado em: ${window.location.href}`, 'info')
+        log(`🎯 API Direta: ${API_DIRETO}`, 'info')
+        log(`🔄 API Proxy: ${API_PROXY}`, 'info')
+        
+        updateStatus('✅ Pronto para testar - Inicie o proxy primeiro!', 'proxy')
+    </script>
+</body>
+</html>
