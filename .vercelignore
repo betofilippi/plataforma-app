@@ -1,0 +1,81 @@
+# =====================================================================================
+# VERCEL IGNORE - ARQUIVOS QUE NÃO DEVEM SER INCLUÍDOS NO DEPLOY
+# =====================================================================================
+
+# Documentation
+*.md
+!README.md
+docs/
+importacao.app/
+DEPLOY.md
+EVOLUCAO_IMPLEMENTACAO.md
+
+# Development files
+.env
+.env.local
+.env.development
+.env.test
+docker-compose*.yml
+Dockerfile
+Makefile
+
+# Database
+*.sql
+database/init/
+*.backup
+*.dump
+
+# Logs
+logs/
+*.log
+
+# Cache
+.cache/
+.tmp/
+
+# Testing
+coverage/
+test-results/
+*.test.js
+*.spec.js
+__tests__/
+
+# Development tools
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Backup
+backup/
+
+# Scripts
+scripts/
+
+# Temporary
+tmp/
+temp/
+
+# Development containers
+docker/
+deployment/
+
+# Monitoring
+monitoring/
+
+# Large files
+*.zip
+*.tar.gz
+*.tgz
+
+# Node modules (handled by Vercel)
+node_modules/
+
+# Build artifacts (Vercel will rebuild)
+dist/
+build/
+.next/

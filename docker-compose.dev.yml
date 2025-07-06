@@ -1,0 +1,170 @@
+version: '3.8'
+
+# =============================================================================
+# DESENVOLVIMENTO - Configuração para ambiente de desenvolvimento
+# =============================================================================
+
+services:
+  # =============================================================================
+  # BACKEND DESENVOLVIMENTO
+  # =============================================================================
+  backend-dev:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+      target: development
+    container_name: nxt-erp-backend-dev
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+      - "9229:9229" # Debug port
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - DEBUG=*
+    env_file:
+      - .env.local
+    volumes:
+      - ./backend/src:/app/src
+      - ./shared:/app/shared
+      - ./integrations:/app/integrations
+      - ./logs:/app/logs
+      - ./uploads:/app/uploads
+      - ./temp:/app/temp
+      - /app/node_modules
+    networks:
+      - nxt-network
+    depends_on:
+      - database-dev
+      - redis-dev
+    command: npm run dev
+
+  # =============================================================================
+  # FRONTEND DESENVOLVIMENTO
+  # =============================================================================
+  frontend-dev:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+      target: development
+    container_name: nxt-erp-frontend-dev
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+      - "6006:6006" # Storybook port
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_API_URL=http://localhost:3001/api
+      - WATCHPACK_POLLING=true
+    env_file:
+      - .env.local
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
+      - ./shared:/app/shared
+      - /app/node_modules
+      - /app/.next
+    networks:
+      - nxt-network
+    depends_on:
+      - backend-dev
+    command: npm run dev
+
+  # =============================================================================
+  # POSTGRESQL DESENVOLVIMENTO
+  # =============================================================================
+  database-dev:
+    image: postgres:15-alpine
+    container_name: nxt-erp-database-dev
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: nxt_erp_dev
+      POSTGRES_USER: nxt_dev
+      POSTGRES_PASSWORD: nxt_dev_pass
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+      - ./database/init:/docker-entrypoint-initdb.d
+      - ./database/migrations:/migrations
+      - ./database/seeds:/seeds
+    networks:
+      - nxt-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nxt_dev -d nxt_erp_dev"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # =============================================================================
+  # REDIS DESENVOLVIMENTO
+  # =============================================================================
+  redis-dev:
+    image: redis:7-alpine
+    container_name: nxt-erp-redis-dev
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --requirepass nxt_redis_dev
+    volumes:
+      - redis_dev_data:/data
+    networks:
+      - nxt-network
+
+  # =============================================================================
+  # ADMINER - Interface de banco de dados
+  # =============================================================================
+  adminer:
+    image: adminer:latest
+    container_name: nxt-erp-adminer
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: database-dev
+    networks:
+      - nxt-network
+    depends_on:
+      - database-dev
+
+  # =============================================================================
+  # MAILHOG - Servidor de email para testes
+  # =============================================================================
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: nxt-erp-mailhog
+    restart: unless-stopped
+    ports:
+      - "1025:1025" # SMTP
+      - "8025:8025" # Web UI
+    networks:
+      - nxt-network
+
+  # =============================================================================
+  # WEBHOOK TESTER - Para testar webhooks localmente
+  # =============================================================================
+  webhook-tester:
+    image: tarampampam/webhook-tester:latest
+    container_name: nxt-erp-webhook-tester
+    restart: unless-stopped
+    ports:
+      - "8090:8080"
+    networks:
+      - nxt-network
+
+# =============================================================================
+# VOLUMES DESENVOLVIMENTO
+# =============================================================================
+volumes:
+  postgres_dev_data:
+    driver: local
+  redis_dev_data:
+    driver: local
+
+# =============================================================================
+# REDE DESENVOLVIMENTO
+# =============================================================================
+networks:
+  nxt-network:
+    driver: bridge

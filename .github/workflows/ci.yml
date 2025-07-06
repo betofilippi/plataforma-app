@@ -1,0 +1,262 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  NODE_VERSION: '18'
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # =============================================================================
+  # LINT E TESTES
+  # =============================================================================
+  test:
+    name: Test & Lint
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        component: [backend, frontend, shared, integrations]
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: '${{ matrix.component }}/package-lock.json'
+
+      - name: Instalar dependências
+        run: |
+          cd ${{ matrix.component }}
+          npm ci
+
+      - name: Verificar tipos TypeScript
+        run: |
+          cd ${{ matrix.component }}
+          npm run type-check
+
+      - name: Lint
+        run: |
+          cd ${{ matrix.component }}
+          npm run lint
+
+      - name: Testes unitários
+        run: |
+          cd ${{ matrix.component }}
+          npm run test -- --coverage --watchAll=false
+
+      - name: Upload coverage para Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./${{ matrix.component }}/coverage/lcov.info
+          flags: ${{ matrix.component }}
+          name: codecov-${{ matrix.component }}
+
+  # =============================================================================
+  # TESTES E2E FRONTEND
+  # =============================================================================
+  e2e-tests:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: 'frontend/package-lock.json'
+
+      - name: Instalar dependências
+        run: |
+          cd frontend
+          npm ci
+
+      - name: Instalar Playwright
+        run: |
+          cd frontend
+          npx playwright install --with-deps
+
+      - name: Build aplicação
+        run: |
+          cd frontend
+          npm run build
+
+      - name: Executar testes E2E
+        run: |
+          cd frontend
+          npm run test:e2e
+
+      - name: Upload Playwright Report
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: playwright-report
+          path: frontend/playwright-report/
+          retention-days: 30
+
+  # =============================================================================
+  # SECURITY SCAN
+  # =============================================================================
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Audit npm backend
+        run: |
+          cd backend
+          npm audit --audit-level moderate
+
+      - name: Audit npm frontend  
+        run: |
+          cd frontend
+          npm audit --audit-level moderate
+
+      - name: Run Snyk para verificar vulnerabilidades
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          command: test
+          args: --all-projects
+
+  # =============================================================================
+  # BUILD DOCKER IMAGES
+  # =============================================================================
+  build:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+    needs: [test, security]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    strategy:
+      matrix:
+        component: [backend, frontend]
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Login to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.component }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix=commit-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build e push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./${{ matrix.component }}
+          file: ./${{ matrix.component }}/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # =============================================================================
+  # DEPLOY STAGING
+  # =============================================================================
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: github.ref == 'refs/heads/develop'
+    environment: staging
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Deploy para staging
+        run: |
+          echo "Deploying to staging environment..."
+          # Aqui seria a lógica de deploy para staging
+          # Exemplo: kubectl, docker-compose, etc.
+
+  # =============================================================================
+  # DEPLOY PRODUCTION
+  # =============================================================================
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: github.ref == 'refs/heads/main'
+    environment: production
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Deploy para produção
+        run: |
+          echo "Deploying to production environment..."
+          # Aqui seria a lógica de deploy para produção
+          # Exemplo: kubectl, docker-compose, etc.
+
+      - name: Notificar Slack sobre deploy
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          channel: '#deployments'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+        if: always()
+
+  # =============================================================================
+  # PERFORMANCE TESTS
+  # =============================================================================
+  performance:
+    name: Performance Tests
+    runs-on: ubuntu-latest
+    needs: [deploy-staging]
+    if: github.ref == 'refs/heads/develop'
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Lighthouse CI
+        uses: treosh/lighthouse-ci-action@v10
+        with:
+          configPath: './.lighthouserc.json'
+          uploadArtifacts: true
+          temporaryPublicStorage: true
+
+      - name: Load testing com Artillery
+        run: |
+          npm install -g artillery
+          artillery run ./tests/performance/load-test.yml

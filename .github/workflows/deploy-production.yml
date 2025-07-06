@@ -1,0 +1,204 @@
+# =====================================================================================
+# CI/CD PIPELINE - DEPLOY PRODUÇÃO PLATAFORMA.APP
+# =====================================================================================
+
+name: Deploy Production
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'docs/**'
+      - '*.md'
+      - '.gitignore'
+  workflow_dispatch:
+    inputs:
+      deploy_target:
+        description: 'Deploy target'
+        required: true
+        default: 'vercel'
+        type: choice
+        options:
+          - vercel
+          - render
+          - both
+
+env:
+  NODE_VERSION: '18.18.2'
+  NPM_VERSION: '9.8.1'
+
+jobs:
+  # Build e Testes
+  test-and-build:
+    name: Test & Build
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: erp_nxt_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm ci --include=dev
+          npm run build:shared
+
+      - name: Lint code
+        run: npm run lint
+
+      - name: Type check
+        run: npm run type-check
+
+      - name: Run tests
+        env:
+          NODE_ENV: test
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/erp_nxt_test
+          REDIS_URL: redis://localhost:6379
+        run: |
+          npm run db:migrate
+          npm test
+
+      - name: Build project
+        run: npm run build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: |
+            backend/dist/
+            frontend/.next/
+            shared/dist/
+            integrations/dist/
+
+  # Deploy Vercel
+  deploy-vercel:
+    name: Deploy to Vercel
+    runs-on: ubuntu-latest
+    needs: test-and-build
+    if: github.ref == 'refs/heads/main' && (github.event.inputs.deploy_target == 'vercel' || github.event.inputs.deploy_target == 'both' || github.event.inputs.deploy_target == '')
+    environment:
+      name: production-vercel
+      url: https://plataforma.app
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+
+      - name: Deploy to Vercel
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: '--prod'
+          working-directory: ./
+
+      - name: Update deployment status
+        if: success()
+        run: |
+          echo "✅ Deploy Vercel concluído: https://plataforma.app"
+          curl -X POST "${{ secrets.DISCORD_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d '{"content":"🚀 **Deploy Produção** - Vercel\n✅ https://plataforma.app\n📦 Commit: `${{ github.sha }}`"}'
+
+  # Deploy Render (Alternativo)
+  deploy-render:
+    name: Deploy to Render
+    runs-on: ubuntu-latest
+    needs: test-and-build
+    if: github.ref == 'refs/heads/main' && (github.event.inputs.deploy_target == 'render' || github.event.inputs.deploy_target == 'both')
+    environment:
+      name: production-render
+      url: https://plataforma-app-backend.onrender.com
+
+    steps:
+      - name: Trigger Render Deploy
+        run: |
+          curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
+          echo "✅ Deploy Render disparado"
+
+      - name: Wait for deployment
+        run: sleep 120
+
+      - name: Check deployment status
+        run: |
+          curl -f https://plataforma-app-backend.onrender.com/api/health || exit 1
+          echo "✅ Deploy Render verificado"
+
+  # Testes de Produção
+  production-tests:
+    name: Production Smoke Tests
+    runs-on: ubuntu-latest
+    needs: [deploy-vercel]
+    if: always() && needs.deploy-vercel.result == 'success'
+
+    steps:
+      - name: Test API Health
+        run: |
+          curl -f https://plataforma.app/api/health
+          echo "✅ API Health OK"
+
+      - name: Test Database Connection
+        run: |
+          response=$(curl -s https://plataforma.app/api/status)
+          echo $response | grep -q "database.*connected" || exit 1
+          echo "✅ Database Connection OK"
+
+      - name: Test Frontend
+        run: |
+          curl -f https://plataforma.app
+          echo "✅ Frontend OK"
+
+      - name: Notify success
+        if: success()
+        run: |
+          curl -X POST "${{ secrets.DISCORD_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d '{"content":"✅ **Deploy Completo** - plataforma.app\n🌐 Frontend: OK\n🔗 API: OK\n💾 Database: OK"}'
+
+      - name: Notify failure
+        if: failure()
+        run: |
+          curl -X POST "${{ secrets.DISCORD_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d '{"content":"❌ **Deploy com Problemas** - plataforma.app\n🔍 Verificar logs: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"}'

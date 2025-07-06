@@ -1,0 +1,207 @@
+# =====================================================================================
+# CI/CD PIPELINE - TESTES PULL REQUEST
+# =====================================================================================
+
+name: Test Pull Request
+
+on:
+  pull_request:
+    branches: [main, develop]
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [develop]
+
+env:
+  NODE_VERSION: '18.18.2'
+
+jobs:
+  # Análise de Qualidade
+  quality-check:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm ci --include=dev
+          npm run build:shared
+
+      - name: Lint check
+        run: npm run lint
+
+      - name: Format check
+        run: npm run format:check
+
+      - name: Type check
+        run: npm run type-check
+
+      - name: Security audit
+        run: npm run security:audit
+
+  # Testes Unitários e Integração
+  test-suite:
+    name: Test Suite
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: erp_nxt_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+
+    strategy:
+      matrix:
+        workspace: [backend, frontend, shared, integrations]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --include=dev
+
+      - name: Build shared modules
+        run: npm run build:shared
+
+      - name: Run migrations
+        if: matrix.workspace == 'backend'
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/erp_nxt_test
+        run: npm run db:migrate --workspace=backend
+
+      - name: Run tests
+        env:
+          NODE_ENV: test
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/erp_nxt_test
+          REDIS_URL: redis://localhost:6379
+        run: npm test --workspace=${{ matrix.workspace }}
+
+      - name: Generate coverage
+        env:
+          NODE_ENV: test
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/erp_nxt_test
+        run: npm run test:coverage --workspace=${{ matrix.workspace }}
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./${{ matrix.workspace }}/coverage/lcov.info
+          flags: ${{ matrix.workspace }}
+
+  # Build de Verificação
+  build-check:
+    name: Build Check
+    runs-on: ubuntu-latest
+    needs: [quality-check]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --include=dev
+
+      - name: Build all workspaces
+        run: npm run build
+
+      - name: Check build size
+        run: |
+          du -sh frontend/.next/
+          du -sh backend/dist/
+          echo "✅ Build sizes verificados"
+
+  # Preview Deploy (Vercel)
+  preview-deploy:
+    name: Preview Deploy
+    runs-on: ubuntu-latest
+    needs: [test-suite, build-check]
+    if: github.event_name == 'pull_request'
+    environment:
+      name: preview
+      url: ${{ steps.deploy.outputs.preview-url }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Deploy Preview
+        id: deploy
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          github-comment: true
+
+      - name: Comment Preview URL
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '🚀 **Preview Deploy Pronto!**\n\n📱 Frontend: ${{ steps.deploy.outputs.preview-url }}\n⚡ Build: `${{ github.sha }}`'
+            })
+
+  # Análise de Segurança
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-results.sarif'

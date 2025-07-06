@@ -1,0 +1,107 @@
+# =====================================================================================
+# RENDER.COM DEPLOYMENT - PLATAFORMA.APP
+# =====================================================================================
+
+services:
+  # Backend API
+  - type: web
+    name: plataforma-app-backend
+    runtime: node
+    env: node
+    region: oregon
+    plan: pro # Para maior performance
+    buildCommand: cd backend && npm install && npm run build
+    startCommand: cd backend && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3001
+      - key: DATABASE_URL
+        fromDatabase:
+          name: plataforma-app-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: plataforma-app-redis
+          property: connectionString
+      - key: APP_URL
+        value: https://plataforma.app
+      - key: CORS_ORIGIN
+        value: https://plataforma.app,https://www.plataforma.app
+    domains:
+      - plataforma.app
+      - www.plataforma.app
+    healthCheckPath: /api/health
+    autoDeploy: true
+    
+  # Frontend Next.js
+  - type: web
+    name: plataforma-app-frontend  
+    runtime: static
+    buildCommand: cd frontend && npm install && npm run build && npm run export
+    staticPublishPath: frontend/out
+    pullRequestPreviewsEnabled: false
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        value: https://plataforma.app/api
+      - key: NEXT_PUBLIC_WS_URL
+        value: wss://plataforma.app/ws
+    domains:
+      - app.plataforma.app
+
+# Banco de Dados PostgreSQL
+databases:
+  - name: plataforma-app-db
+    databaseName: erp_nxt_prod
+    user: nxt_user
+    region: oregon
+    plan: pro # 4GB RAM para performance
+    postgresMajorVersion: 15
+
+# Redis Cache
+services:
+  - type: redis
+    name: plataforma-app-redis
+    region: oregon
+    plan: pro # 1GB RAM
+    maxmemoryPolicy: allkeys-lru
+
+# Worker para processamento de webhooks
+  - type: worker
+    name: plataforma-app-webhooks
+    runtime: node
+    env: node
+    region: oregon
+    plan: starter
+    buildCommand: cd backend && npm install && npm run build
+    startCommand: cd backend && npm run worker:webhooks
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: plataforma-app-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: plataforma-app-redis
+          property: connectionString
+    autoDeploy: true
+
+# Cron Jobs
+  - type: cron
+    name: plataforma-app-sync
+    runtime: node
+    schedule: "0 */6 * * *" # A cada 6 horas
+    buildCommand: cd backend && npm install && npm run build  
+    startCommand: cd backend && npm run sync:integrations
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: plataforma-app-db
+          property: connectionString

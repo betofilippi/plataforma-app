@@ -1,0 +1,259 @@
+# =====================================================================================
+# GITIGNORE - PLATAFORMA.APP ERP SYSTEM
+# =====================================================================================
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# nyc test coverage
+.nyc_output
+
+# node_modules
+node_modules/
+jspm_packages/
+
+# TypeScript v1 declaration files
+typings/
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.staging
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+dump.rdb
+
+# Build outputs
+dist/
+build/
+out/
+
+# Next.js
+.next/
+*.tgz
+
+# Nuxt.js
+.nuxt
+
+# Gatsby
+.cache/
+public
+
+# Storybook
+storybook-static
+
+# IDE
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary folders
+tmp/
+temp/
+
+# Archives
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+
+# Uploads
+uploads/
+files/
+storage/
+
+# Backups
+backup/
+*.backup
+*.bak
+
+# Documentation build
+docs/_build/
+
+# Deployment
+.vercel
+.netlify
+
+# Docker
+.dockerignore
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+
+# Cloud provider credentials
+credentials.json
+service-account.json
+
+# SSL certificates
+*.pem
+*.key
+*.crt
+*.p12
+
+# Testing
+.jest-cache/
+test-results/
+coverage.json
+
+# Package managers
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Husky
+.husky/_
+
+# Local development
+.local/
+.data/
+
+# Metrics and monitoring
+metrics/
+*.pid
+
+# Cache
+.cache/
+.tmp/
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.suo
+*.ntvs*
+.njsproj
+.sln
+*.sw?
+
+# Environment specific
+development.env
+staging.env
+production.env
+
+# Platform specific
+Thumbs.db
+ehthumbs.db
+
+# Compiled source
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
+
+# Packages
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+
+# Application specific
+sessions/
+logs/app.log*
+*.session
+
+# Database dumps
+*.sql.gz
+*.dump
+
+# Performance monitoring
+newrelic_agent.log
+
+# IDEs and editors
+/.vscode
+/.idea
+*.sublime-project
+*.sublime-workspace
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Icon?
+ehthumbs.db
+Thumbs.db
+
+# Runtime configuration
+runtime.json
+app.config.json
+
+# Generated documentation
+api-docs/
+type-docs/
+
+# Sentry
+.sentryclirc
+
+# PWA files
+**/sw.js
+**/workbox-*.js
+
+# Nx
+.nx/cache

@@ -1,0 +1,52 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "version": 2,
+  "alias": ["plataforma.app", "www.plataforma.app"],
+  "regions": ["gru1", "iad1"],
+  "framework": null,
+  "buildCommand": "echo 'Minimal deploy for now'",
+  "outputDirectory": "frontend",
+  "installCommand": "npm install --include=dev",
+  "devCommand": "npm run dev",
+  "builds": [
+    {
+      "src": "frontend/**",
+      "use": "@vercel/static"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  },
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "https://plataforma.app"
+        },
+        {
+          "key": "Access-Control-Allow-Methods", 
+          "value": "GET, POST, PUT, DELETE, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type, Authorization"
+        }
+      ]
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/app",
+      "destination": "/dashboard",
+      "permanent": false
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/docs",
+      "destination": "/api/docs"
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "commonjs",
+    "lib": ["ES2022"],
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "node",
+    "baseUrl": "./",
+    "paths": {
+      "@/backend/*": ["./backend/src/*"],
+      "@/frontend/*": ["./frontend/src/*"],
+      "@/shared/*": ["./shared/*"],
+      "@/integrations/*": ["./integrations/*"]
+    }
+  },
+  "references": [
+    {
+      "path": "./backend"
+    },
+    {
+      "path": "./frontend"
+    },
+    {
+      "path": "./shared"
+    },
+    {
+      "path": "./integrations"
+    }
+  ],
+  "files": [],
+  "include": [],
+  "exclude": [
+    "node_modules",
+    "dist",
+    ".next",
+    "out",
+    "coverage",
+    "logs",
+    "storybook-static"
+  ]
+}

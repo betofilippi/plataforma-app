@@ -1,0 +1,288 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+env:
+  NODE_VERSION: '18'
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # =============================================================================
+  # CREATE RELEASE
+  # =============================================================================
+  create-release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    
+    outputs:
+      release_id: ${{ steps.create_release.outputs.id }}
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Extract version from tag
+        id: extract_version
+        run: echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          # Gerar changelog baseado nos commits desde a última tag
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
+          if [ -z "$PREVIOUS_TAG" ]; then
+            CHANGELOG=$(git log --pretty=format:"- %s" --reverse)
+          else
+            CHANGELOG=$(git log --pretty=format:"- %s" --reverse $PREVIOUS_TAG..HEAD)
+          fi
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ steps.extract_version.outputs.version }}
+          body: |
+            ## Changes in ${{ steps.extract_version.outputs.version }}
+            
+            ${{ steps.changelog.outputs.changelog }}
+            
+            ## Docker Images
+            
+            ### Backend
+            ```bash
+            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:${{ steps.extract_version.outputs.version }}
+            ```
+            
+            ### Frontend
+            ```bash
+            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:${{ steps.extract_version.outputs.version }}
+            ```
+            
+            ## Installation
+            
+            1. Download the release assets
+            2. Update your `.env` file with new configurations
+            3. Run database migrations if needed
+            4. Deploy using Docker Compose:
+            
+            ```bash
+            docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+            ```
+          draft: false
+          prerelease: false
+
+  # =============================================================================
+  # BUILD RELEASE IMAGES
+  # =============================================================================
+  build-release:
+    name: Build Release Images
+    runs-on: ubuntu-latest
+    needs: [create-release]
+    
+    strategy:
+      matrix:
+        component: [backend, frontend]
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Extract version from tag
+        id: extract_version
+        run: echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Login to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build e push versioned image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./${{ matrix.component }}
+          file: ./${{ matrix.component }}/Dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.component }}:${{ steps.extract_version.outputs.version }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.component }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # =============================================================================
+  # CREATE DEPLOYMENT PACKAGE
+  # =============================================================================
+  create-package:
+    name: Create Deployment Package
+    runs-on: ubuntu-latest
+    needs: [create-release]
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Extract version from tag
+        id: extract_version
+        run: echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Create deployment package
+        run: |
+          mkdir -p deployment-package
+          
+          # Copiar arquivos de configuração
+          cp docker-compose.yml deployment-package/
+          cp docker-compose.prod.yml deployment-package/ || echo "No prod compose file"
+          cp .env.example deployment-package/
+          
+          # Copiar scripts de deploy
+          cp -r scripts deployment-package/ || echo "No scripts directory"
+          
+          # Copiar configurações do nginx
+          cp -r nginx deployment-package/ || echo "No nginx directory"
+          
+          # Criar README de instalação
+          cat > deployment-package/INSTALL.md << EOF
+          # NXT ERP System - Installation Guide
+          
+          ## Version: ${{ steps.extract_version.outputs.version }}
+          
+          ### Prerequisites
+          - Docker & Docker Compose
+          - PostgreSQL 15+
+          - Redis 7+
+          
+          ### Installation Steps
+          
+          1. Copy \`.env.example\` to \`.env\` and configure:
+             \`\`\`bash
+             cp .env.example .env
+             \`\`\`
+          
+          2. Update environment variables in \`.env\`
+          
+          3. Start services:
+             \`\`\`bash
+             docker-compose up -d
+             \`\`\`
+          
+          4. Run database migrations:
+             \`\`\`bash
+             docker-compose exec backend npm run db:migrate
+             \`\`\`
+          
+          5. Access the application:
+             - Frontend: http://localhost:3000
+             - Backend API: http://localhost:3001
+          EOF
+          
+          # Criar arquivo ZIP
+          cd deployment-package
+          zip -r ../nxt-erp-${{ steps.extract_version.outputs.version }}.zip .
+          cd ..
+
+      - name: Upload deployment package
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: ./nxt-erp-${{ steps.extract_version.outputs.version }}.zip
+          asset_name: nxt-erp-${{ steps.extract_version.outputs.version }}.zip
+          asset_content_type: application/zip
+
+  # =============================================================================
+  # UPDATE DOCUMENTATION
+  # =============================================================================
+  update-docs:
+    name: Update Documentation
+    runs-on: ubuntu-latest
+    needs: [create-release]
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract version from tag
+        id: extract_version
+        run: echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Update version in documentation
+        run: |
+          # Atualizar README principal
+          sed -i "s/**Versão**: .*/**Versão**: ${{ steps.extract_version.outputs.version }}/" README.md
+          
+          # Atualizar package.json files
+          sed -i "s/\"version\": \".*\"/\"version\": \"${{ steps.extract_version.outputs.version }}\"/" backend/package.json
+          sed -i "s/\"version\": \".*\"/\"version\": \"${{ steps.extract_version.outputs.version }}\"/" frontend/package.json
+
+      - name: Commit version updates
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add .
+          git commit -m "chore: update version to ${{ steps.extract_version.outputs.version }}" || exit 0
+          git push
+
+  # =============================================================================
+  # NOTIFY DEPLOYMENT
+  # =============================================================================
+  notify:
+    name: Notify Release
+    runs-on: ubuntu-latest
+    needs: [build-release, create-package, update-docs]
+    if: always()
+
+    steps:
+      - name: Extract version from tag
+        id: extract_version
+        run: echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Notify Slack
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              attachments: [{
+                color: '${{ job.status }}' === 'success' ? 'good' : 'danger',
+                title: 'NXT ERP Release ${{ steps.extract_version.outputs.version }}',
+                text: '${{ job.status }}' === 'success' ? 'Successfully released version ${{ steps.extract_version.outputs.version }}' : 'Failed to release version ${{ steps.extract_version.outputs.version }}',
+                fields: [
+                  {
+                    title: 'Version',
+                    value: '${{ steps.extract_version.outputs.version }}',
+                    short: true
+                  },
+                  {
+                    title: 'Status',
+                    value: '${{ job.status }}',
+                    short: true
+                  }
+                ]
+              }]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
+      - name: Notify Teams
+        uses: skitionek/notify-microsoft-teams@master
+        if: always()
+        with:
+          webhook_url: ${{ secrets.TEAMS_WEBHOOK }}
+          title: NXT ERP Release
+          message: Version ${{ steps.extract_version.outputs.version }} has been released
+          color: ${{ job.status == 'success' && '00ff00' || 'ff0000' }}

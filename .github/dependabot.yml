@@ -1,0 +1,120 @@
+# Configuração Dependabot - Atualizações Automáticas
+version: 2
+updates:
+  # Backend Node.js dependencies
+  - package-ecosystem: "npm"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "nxt-dev-team"
+    assignees:
+      - "nxt-dev-team"
+    commit-message:
+      prefix: "backend"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "backend"
+
+  # Frontend Node.js dependencies  
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "nxt-dev-team"
+    assignees:
+      - "nxt-dev-team"
+    commit-message:
+      prefix: "frontend"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "frontend"
+
+  # Shared dependencies
+  - package-ecosystem: "npm"
+    directory: "/shared"
+    schedule:
+      interval: "weekly"
+      day: "monday"  
+      time: "09:00"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "nxt-dev-team"
+    commit-message:
+      prefix: "shared"
+    labels:
+      - "dependencies"
+      - "shared"
+
+  # Integrations dependencies
+  - package-ecosystem: "npm"
+    directory: "/integrations"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "nxt-dev-team"
+    commit-message:
+      prefix: "integrations"
+    labels:
+      - "dependencies"
+      - "integrations"
+
+  # Root monorepo dependencies
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "nxt-dev-team"
+    commit-message:
+      prefix: "monorepo"
+    labels:
+      - "dependencies"
+      - "monorepo"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 2
+    reviewers:
+      - "nxt-dev-team"
+    commit-message:
+      prefix: "ci"
+    labels:
+      - "dependencies"
+      - "ci/cd"
+
+  # Docker
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 2
+    reviewers:
+      - "nxt-dev-team"
+    commit-message:
+      prefix: "docker"
+    labels:
+      - "dependencies"
+      - "docker"

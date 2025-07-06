@@ -1,0 +1,48 @@
+{
+  "name": "plataforma-app",
+  "version": 2,
+  "alias": ["plataforma.app", "www.plataforma.app"],
+  "regions": ["gru1"],
+  "framework": "nextjs",
+  "buildCommand": "npm run build:all",
+  "outputDirectory": "frontend/.next",
+  "installCommand": "npm install --include=dev",
+  "devCommand": "npm run dev",
+  
+  "github": {
+    "enabled": true,
+    "autoAlias": true
+  },
+  
+  "functions": {
+    "backend/src/**/*.js": {
+      "runtime": "nodejs18.x",
+      "maxDuration": 30
+    }
+  },
+  
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/backend/src/index.js"
+    },
+    {
+      "src": "/webhooks/(.*)", 
+      "dest": "/backend/src/webhooks/index.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/frontend/$1"
+    }
+  ],
+  
+  "env": {
+    "NODE_ENV": "production"
+  },
+  
+  "build": {
+    "env": {
+      "NODE_ENV": "production"
+    }
+  }
+}
