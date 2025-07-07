@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BI Dashboard - NXT ERP</title>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    
+    <!-- Socket.io -->
+    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --secondary-color: #6c757d;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
+            --info-color: #17a2b8;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--light-color);
+            color: var(--dark-color);
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, var(--primary-color), var(--info-color));
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+            color: white !important;
+        }
+
+        .dashboard-container {
+            min-height: calc(100vh - 76px);
+            padding: 20px 0;
+        }
+
+        .dashboard-header {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .dashboard-title {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 5px;
+        }
+
+        .dashboard-subtitle {
+            color: var(--secondary-color);
+            font-size: 1rem;
+        }
+
+        .kpi-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: transform 0.2s ease;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+
+        .kpi-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--secondary-color);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .kpi-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--dark-color);
+            margin-bottom: 5px;
+        }
+
+        .kpi-change {
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .kpi-change.positive {
+            color: var(--success-color);
+        }
+
+        .kpi-change.negative {
+            color: var(--danger-color);
+        }
+
+        .kpi-change.neutral {
+            color: var(--secondary-color);
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .chart-title {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: var(--dark-color);
+            margin-bottom: 15px;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+
+        .chart-wrapper.large {
+            height: 400px;
+        }
+
+        .chart-wrapper.small {
+            height: 200px;
+        }
+
+        .dashboard-tabs {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .nav-tabs .nav-link {
+            border: none;
+            color: var(--secondary-color);
+            font-weight: 500;
+            padding: 15px 20px;
+            border-radius: 0;
+        }
+
+        .nav-tabs .nav-link.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .nav-tabs .nav-link:first-child {
+            border-top-left-radius: 10px;
+        }
+
+        .nav-tabs .nav-link:last-child {
+            border-top-right-radius: 10px;
+        }
+
+        .tab-content {
+            padding: 20px;
+        }
+
+        .loading-spinner {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+        }
+
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+        }
+
+        .status-indicator.online {
+            background-color: var(--success-color);
+        }
+
+        .status-indicator.offline {
+            background-color: var(--danger-color);
+        }
+
+        .last-updated {
+            font-size: 0.8rem;
+            color: var(--secondary-color);
+            margin-top: 10px;
+        }
+
+        .refresh-button {
+            background: none;
+            border: none;
+            color: var(--secondary-color);
+            cursor: pointer;
+            font-size: 1.2rem;
+            margin-left: 10px;
+        }
+
+        .refresh-button:hover {
+            color: var(--primary-color);
+        }
+
+        .refresh-button.spinning {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .alert-banner {
+            position: fixed;
+            top: 76px;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            margin: 0;
+            border-radius: 0;
+        }
+
+        .mobile-menu {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-container {
+                padding: 10px 0;
+            }
+
+            .dashboard-header {
+                padding: 15px;
+                margin-bottom: 15px;
+            }
+
+            .dashboard-title {
+                font-size: 1.5rem;
+            }
+
+            .kpi-card {
+                padding: 15px;
+                margin-bottom: 15px;
+            }
+
+            .kpi-value {
+                font-size: 2rem;
+            }
+
+            .chart-container {
+                padding: 15px;
+                margin-bottom: 15px;
+            }
+
+            .chart-wrapper {
+                height: 250px;
+            }
+
+            .chart-wrapper.large {
+                height: 300px;
+            }
+
+            .chart-wrapper.small {
+                height: 180px;
+            }
+
+            .nav-tabs .nav-link {
+                padding: 10px 15px;
+                font-size: 0.9rem;
+            }
+
+            .mobile-menu {
+                display: block;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                background: white;
+                box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+                z-index: 1000;
+            }
+
+            .mobile-menu-item {
+                flex: 1;
+                text-align: center;
+                padding: 10px 5px;
+                color: var(--secondary-color);
+                text-decoration: none;
+                font-size: 0.8rem;
+            }
+
+            .mobile-menu-item.active {
+                color: var(--primary-color);
+            }
+
+            .mobile-menu-item i {
+                display: block;
+                font-size: 1.2rem;
+                margin-bottom: 2px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .kpi-value {
+                font-size: 1.8rem;
+            }
+
+            .chart-wrapper {
+                height: 200px;
+            }
+
+            .chart-wrapper.large {
+                height: 250px;
+            }
+
+            .chart-wrapper.small {
+                height: 150px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#"><i class="fas fa-chart-line me-2"></i>NXT BI Dashboard</a>
+            <div class="navbar-nav ms-auto d-flex flex-row">
+                <span class="navbar-text me-3">
+                    <span class="status-indicator online"></span>
+                    Real-time
+                </span>
+                <button class="refresh-button" onclick="refreshDashboard()">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Alert Banner -->
+    <div id="alertBanner" class="alert alert-info alert-dismissible fade show alert-banner" style="display: none;">
+        <span id="alertMessage"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- Main Dashboard -->
+    <div class="dashboard-container">
+        <div class="container">
+            <!-- Dashboard Header -->
+            <div class="dashboard-header">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h1 class="dashboard-title">Executive Dashboard</h1>
+                        <p class="dashboard-subtitle">Real-time business intelligence and analytics</p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <div class="last-updated">
+                            Last updated: <span id="lastUpdated">--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Tabs -->
+            <div class="dashboard-tabs">
+                <ul class="nav nav-tabs" id="dashboardTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="executive-tab" data-bs-toggle="tab" data-bs-target="#executive" type="button" role="tab">
+                            <i class="fas fa-tachometer-alt me-2"></i>Executive
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="sales-tab" data-bs-toggle="tab" data-bs-target="#sales" type="button" role="tab">
+                            <i class="fas fa-chart-bar me-2"></i>Sales
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="inventory-tab" data-bs-toggle="tab" data-bs-target="#inventory" type="button" role="tab">
+                            <i class="fas fa-boxes me-2"></i>Inventory
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="financial-tab" data-bs-toggle="tab" data-bs-target="#financial" type="button" role="tab">
+                            <i class="fas fa-dollar-sign me-2"></i>Financial
+                        </button>
+                    </li>
+                </ul>
+                <div class="tab-content" id="dashboardTabsContent">
+                    <!-- Executive Tab -->
+                    <div class="tab-pane fade show active" id="executive" role="tabpanel">
+                        <div class="row">
+                            <!-- KPI Cards -->
+                            <div class="col-lg-3 col-md-6">
+                                <div class="kpi-card">
+                                    <div class="kpi-title">Total Revenue</div>
+                                    <div class="kpi-value" id="totalRevenue">--</div>
+                                    <div class="kpi-change positive" id="revenueChange">
+                                        <i class="fas fa-arrow-up"></i> --
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <div class="kpi-card">
+                                    <div class="kpi-title">Total Orders</div>
+                                    <div class="kpi-value" id="totalOrders">--</div>
+                                    <div class="kpi-change positive" id="ordersChange">
+                                        <i class="fas fa-arrow-up"></i> --
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <div class="kpi-card">
+                                    <div class="kpi-title">Average Order Value</div>
+                                    <div class="kpi-value" id="averageOrderValue">--</div>
+                                    <div class="kpi-change neutral" id="aovChange">
+                                        <i class="fas fa-minus"></i> --
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <div class="kpi-card">
+                                    <div class="kpi-title">Profit Margin</div>
+                                    <div class="kpi-value" id="profitMargin">--</div>
+                                    <div class="kpi-change positive" id="marginChange">
+                                        <i class="fas fa-arrow-up"></i> --
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Charts -->
+                        <div class="row">
+                            <div class="col-lg-8">
+                                <div class="chart-container">
+                                    <div class="chart-title">Revenue Trend</div>
+                                    <div class="chart-wrapper large">
+                                        <canvas id="revenueTrendChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-4">
+                                <div class="chart-container">
+                                    <div class="chart-title">Sales by Category</div>
+                                    <div class="chart-wrapper">
+                                        <canvas id="salesCategoryChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sales Tab -->
+                    <div class="tab-pane fade" id="sales" role="tabpanel">
+                        <div class="row">
+                            <!-- Loading Spinner -->
+                            <div class="col-12">
+                                <div class="loading-spinner">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Inventory Tab -->
+                    <div class="tab-pane fade" id="inventory" role="tabpanel">
+                        <div class="row">
+                            <!-- Loading Spinner -->
+                            <div class="col-12">
+                                <div class="loading-spinner">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Financial Tab -->
+                    <div class="tab-pane fade" id="financial" role="tabpanel">
+                        <div class="row">
+                            <!-- Loading Spinner -->
+                            <div class="col-12">
+                                <div class="loading-spinner">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu d-flex">
+        <a href="#" class="mobile-menu-item active" data-tab="executive">
+            <i class="fas fa-tachometer-alt"></i>
+            Executive
+        </a>
+        <a href="#" class="mobile-menu-item" data-tab="sales">
+            <i class="fas fa-chart-bar"></i>
+            Sales
+        </a>
+        <a href="#" class="mobile-menu-item" data-tab="inventory">
+            <i class="fas fa-boxes"></i>
+            Inventory
+        </a>
+        <a href="#" class="mobile-menu-item" data-tab="financial">
+            <i class="fas fa-dollar-sign"></i>
+            Financial
+        </a>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Dashboard JavaScript -->
+    <script>
+        // Global variables
+        let socket = null;
+        let charts = {};
+        let dashboardData = {};
+        let currentTab = 'executive';
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeSocketConnection();
+            initializeDashboard();
+            setupEventListeners();
+        });
+
+        // Initialize Socket.io connection
+        function initializeSocketConnection() {
+            socket = io(window.location.origin);
+
+            socket.on('connect', function() {
+                console.log('Connected to server');
+                updateConnectionStatus(true);
+                authenticateSocket();
+            });
+
+            socket.on('disconnect', function() {
+                console.log('Disconnected from server');
+                updateConnectionStatus(false);
+            });
+
+            socket.on('dashboard_update', function(data) {
+                updateDashboard(data);
+            });
+
+            socket.on('kpi_update', function(data) {
+                updateKPIs(data);
+            });
+
+            socket.on('chart_update', function(data) {
+                updateChart(data);
+            });
+
+            socket.on('new_alerts', function(alerts) {
+                showAlerts(alerts);
+            });
+        }
+
+        // Authenticate socket connection
+        function authenticateSocket() {
+            const token = localStorage.getItem('authToken');
+            const userId = localStorage.getItem('userId');
+            const companyId = localStorage.getItem('companyId');
+
+            if (token && userId && companyId) {
+                socket.emit('authenticate', { token, userId, companyId });
+            }
+        }
+
+        // Initialize dashboard
+        function initializeDashboard() {
+            loadDashboardData('executive');
+            subscribeToDashboard('executive');
+            updateLastUpdated();
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Tab switching
+            document.querySelectorAll('[data-bs-toggle="tab"]').forEach(tab => {
+                tab.addEventListener('shown.bs.tab', function(e) {
+                    const tabId = e.target.getAttribute('data-bs-target').substring(1);
+                    switchDashboard(tabId);
+                });
+            });
+
+            // Mobile menu
+            document.querySelectorAll('.mobile-menu-item').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const tab = this.getAttribute('data-tab');
+                    switchToTab(tab);
+                });
+            });
+
+            // Refresh button
+            document.querySelector('.refresh-button').addEventListener('click', refreshDashboard);
+        }
+
+        // Switch dashboard
+        function switchDashboard(tabId) {
+            if (currentTab !== tabId) {
+                currentTab = tabId;
+                loadDashboardData(tabId);
+                subscribeToDashboard(tabId);
+                updateMobileMenu(tabId);
+            }
+        }
+
+        // Switch to tab
+        function switchToTab(tabId) {
+            const tab = document.querySelector(`#${tabId}-tab`);
+            if (tab) {
+                tab.click();
+            }
+        }
+
+        // Load dashboard data
+        function loadDashboardData(dashboardType) {
+            const endpoint = `/api/bi/dashboards/${dashboardType}`;
+            
+            fetch(endpoint, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    dashboardData[dashboardType] = data.data;
+                    renderDashboard(dashboardType, data.data);
+                }
+            })
+            .catch(error => {
+                console.error('Error loading dashboard data:', error);
+                showError('Failed to load dashboard data');
+            });
+        }
+
+        // Subscribe to dashboard updates
+        function subscribeToDashboard(dashboardType) {
+            if (socket) {
+                socket.emit('subscribe_dashboard', {
+                    dashboardType,
+                    refreshInterval: 30000
+                });
+            }
+        }
+
+        // Render dashboard
+        function renderDashboard(dashboardType, data) {
+            switch (dashboardType) {
+                case 'executive':
+                    renderExecutiveDashboard(data);
+                    break;
+                case 'sales':
+                    renderSalesDashboard(data);
+                    break;
+                case 'inventory':
+                    renderInventoryDashboard(data);
+                    break;
+                case 'financial':
+                    renderFinancialDashboard(data);
+                    break;
+            }
+            updateLastUpdated();
+        }
+
+        // Render executive dashboard
+        function renderExecutiveDashboard(data) {
+            // Update KPIs
+            updateKPI('totalRevenue', data.kpis?.totalRevenue || 0, data.kpis?.revenueChange || 0);
+            updateKPI('totalOrders', data.kpis?.totalOrders || 0, data.kpis?.ordersChange || 0);
+            updateKPI('averageOrderValue', data.kpis?.averageOrderValue || 0, data.kpis?.aovChange || 0);
+            updateKPI('profitMargin', data.kpis?.profitMargin || 0, data.kpis?.marginChange || 0);
+
+            // Create charts
+            createRevenueChart(data.revenueTrend);
+            createSalesCategoryChart(data.salesByCategory);
+        }
+
+        // Render sales dashboard
+        function renderSalesDashboard(data) {
+            // Implementation for sales dashboard
+            console.log('Rendering sales dashboard:', data);
+        }
+
+        // Render inventory dashboard
+        function renderInventoryDashboard(data) {
+            // Implementation for inventory dashboard
+            console.log('Rendering inventory dashboard:', data);
+        }
+
+        // Render financial dashboard
+        function renderFinancialDashboard(data) {
+            // Implementation for financial dashboard
+            console.log('Rendering financial dashboard:', data);
+        }
+
+        // Update KPI
+        function updateKPI(kpiId, value, change) {
+            const valueElement = document.getElementById(kpiId);
+            const changeElement = document.getElementById(kpiId.replace(/([A-Z])/g, '$1').toLowerCase() + 'Change');
+            
+            if (valueElement) {
+                valueElement.textContent = formatValue(value, kpiId);
+            }
+            
+            if (changeElement) {
+                const changeValue = Math.abs(change);
+                const changeText = `${changeValue.toFixed(1)}%`;
+                changeElement.innerHTML = `<i class="fas fa-arrow-${change >= 0 ? 'up' : 'down'}"></i> ${changeText}`;
+                changeElement.className = `kpi-change ${change >= 0 ? 'positive' : 'negative'}`;
+            }
+        }
+
+        // Create revenue chart
+        function createRevenueChart(data) {
+            const ctx = document.getElementById('revenueTrendChart');
+            if (!ctx) return;
+
+            if (charts.revenueTrend) {
+                charts.revenueTrend.destroy();
+            }
+
+            charts.revenueTrend = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data?.labels || [],
+                    datasets: [{
+                        label: 'Revenue',
+                        data: data?.data || [],
+                        borderColor: '#007bff',
+                        backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return formatCurrency(value);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Create sales category chart
+        function createSalesCategoryChart(data) {
+            const ctx = document.getElementById('salesCategoryChart');
+            if (!ctx) return;
+
+            if (charts.salesCategory) {
+                charts.salesCategory.destroy();
+            }
+
+            charts.salesCategory = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: data?.labels || [],
+                    datasets: [{
+                        data: data?.data || [],
+                        backgroundColor: [
+                            '#FF6384',
+                            '#36A2EB',
+                            '#FFCE56',
+                            '#4BC0C0',
+                            '#9966FF'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        // Update dashboard
+        function updateDashboard(data) {
+            if (data.dashboardType === currentTab) {
+                renderDashboard(data.dashboardType, data.updates);
+            }
+        }
+
+        // Update KPIs
+        function updateKPIs(data) {
+            // Implementation for KPI updates
+            console.log('KPI update:', data);
+        }
+
+        // Update chart
+        function updateChart(data) {
+            // Implementation for chart updates
+            console.log('Chart update:', data);
+        }
+
+        // Show alerts
+        function showAlerts(alerts) {
+            if (alerts.length > 0) {
+                const alertBanner = document.getElementById('alertBanner');
+                const alertMessage = document.getElementById('alertMessage');
+                
+                alertMessage.textContent = alerts[0].message;
+                alertBanner.style.display = 'block';
+                
+                setTimeout(() => {
+                    alertBanner.style.display = 'none';
+                }, 5000);
+            }
+        }
+
+        // Update connection status
+        function updateConnectionStatus(connected) {
+            const statusIndicator = document.querySelector('.status-indicator');
+            if (connected) {
+                statusIndicator.classList.remove('offline');
+                statusIndicator.classList.add('online');
+            } else {
+                statusIndicator.classList.remove('online');
+                statusIndicator.classList.add('offline');
+            }
+        }
+
+        // Update mobile menu
+        function updateMobileMenu(activeTab) {
+            document.querySelectorAll('.mobile-menu-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.getAttribute('data-tab') === activeTab) {
+                    item.classList.add('active');
+                }
+            });
+        }
+
+        // Refresh dashboard
+        function refreshDashboard() {
+            const refreshButton = document.querySelector('.refresh-button i');
+            refreshButton.classList.add('spinning');
+            
+            loadDashboardData(currentTab);
+            
+            setTimeout(() => {
+                refreshButton.classList.remove('spinning');
+            }, 1000);
+        }
+
+        // Update last updated timestamp
+        function updateLastUpdated() {
+            const now = new Date();
+            document.getElementById('lastUpdated').textContent = now.toLocaleTimeString();
+        }
+
+        // Show error message
+        function showError(message) {
+            const alertBanner = document.getElementById('alertBanner');
+            const alertMessage = document.getElementById('alertMessage');
+            
+            alertBanner.className = 'alert alert-danger alert-dismissible fade show alert-banner';
+            alertMessage.textContent = message;
+            alertBanner.style.display = 'block';
+        }
+
+        // Format value
+        function formatValue(value, type) {
+            if (value === null || value === undefined) return '--';
+            
+            switch (type) {
+                case 'totalRevenue':
+                case 'averageOrderValue':
+                    return formatCurrency(value);
+                case 'profitMargin':
+                    return `${value.toFixed(1)}%`;
+                default:
+                    return value.toLocaleString();
+            }
+        }
+
+        // Format currency
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD'
+            }).format(value);
+        }
+    </script>
+</body>
+</html>

@@ -79,4 +79,54 @@ router.post('/:id/cost-calc',
   controller.calculateCost.bind(controller)
 );
 
+/**
+ * @route   GET /api/prd/bom/:id/revisions
+ * @desc    Obter revisões do BOM
+ * @access  Private
+ */
+router.get('/:id/revisions', 
+  permissions.check('bom', 'read'),
+  controller.getRevisions.bind(controller)
+);
+
+/**
+ * @route   POST /api/prd/bom/:id/revisions
+ * @desc    Criar nova revisão do BOM
+ * @access  Private
+ */
+router.post('/:id/revisions', 
+  permissions.check('bom', 'update'),
+  controller.createRevision.bind(controller)
+);
+
+/**
+ * @route   POST /api/prd/bom/:id/copy
+ * @desc    Copiar BOM
+ * @access  Private
+ */
+router.post('/:id/copy', 
+  permissions.check('bom', 'create'),
+  controller.copyBOM.bind(controller)
+);
+
+/**
+ * @route   POST /api/prd/bom/:id/validate
+ * @desc    Validar BOM
+ * @access  Private
+ */
+router.post('/:id/validate', 
+  permissions.check('bom', 'read'),
+  controller.validateBOM.bind(controller)
+);
+
+/**
+ * @route   GET /api/prd/bom/:id/usage
+ * @desc    Obter onde o BOM é usado
+ * @access  Private
+ */
+router.get('/:id/usage', 
+  permissions.check('bom', 'read'),
+  controller.getUsage.bind(controller)
+);
+
 module.exports = router;

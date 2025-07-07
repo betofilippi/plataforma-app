@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
-const knex = require('../database/connection');
+const { getDb } = require('../database/connection');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production';
 
@@ -40,6 +40,7 @@ const authMiddleware = async (req, res, next) => {
     
     let session, user;
     try {
+      const knex = getDb();
       session = await knex('auth_sessions')
         .where({ token_hash: tokenHash })
         .andWhere('expires_at', '>', new Date())
@@ -134,6 +135,7 @@ const optionalAuth = async (req, res, next) => {
     
     let session, user;
     try {
+      const knex = getDb();
       session = await knex('auth_sessions')
         .where({ token_hash: tokenHash })
         .andWhere('expires_at', '>', new Date())

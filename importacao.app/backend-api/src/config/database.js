@@ -60,24 +60,16 @@ class DatabaseConfig {
    */
   getKnexConfig() {
     const env = process.env.NODE_ENV || 'development';
+    const path = require('path');
     
     const baseConfig = {
-      client: 'postgresql',
+      client: 'sqlite3',
       connection: {
-        host: process.env.DB_HOST || 'localhost',
-        port: parseInt(process.env.DB_PORT) || 5432,
-        database: process.env.DB_NAME || 'erp_nxt',
-        user: process.env.DB_USER || 'postgres',
-        password: process.env.DB_PASSWORD || 'postgres',
-        ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
-        connectionTimeoutMillis: 10000,
-        idleTimeoutMillis: 30000,
-        max: parseInt(process.env.DB_POOL_MAX) || 20,
-        min: parseInt(process.env.DB_POOL_MIN) || 2,
+        filename: process.env.DB_PATH || path.join(__dirname, '../../database/erp_nxt.sqlite')
       },
       pool: {
-        min: parseInt(process.env.DB_POOL_MIN) || 2,
-        max: parseInt(process.env.DB_POOL_MAX) || 20,
+        min: 1,
+        max: 10,
         createTimeoutMillis: 30000,
         acquireTimeoutMillis: 60000,
         idleTimeoutMillis: 600000, // 10 minutos
@@ -85,10 +77,10 @@ class DatabaseConfig {
         createRetryIntervalMillis: 200,
         propagateCreateError: false,
         afterCreate: (conn, done) => {
-          // Configurações específicas da conexão PostgreSQL
-          conn.query('SET timezone="UTC";', (err) => {
+          // Configurações específicas para SQLite
+          conn.run('PRAGMA foreign_keys = ON;', (err) => {
             if (err) {
-              console.warn('Aviso: Falha ao definir timezone UTC:', err.message);
+              console.warn('Aviso: Falha ao habilitar foreign keys:', err.message);
             }
             done(err, conn);
           });
@@ -118,13 +110,14 @@ class DatabaseConfig {
 
     // Configurações específicas por ambiente
     if (env === 'production') {
-      baseConfig.pool.min = 5;
-      baseConfig.pool.max = 50;
+      baseConfig.pool.min = 2;
+      baseConfig.pool.max = 20;
       baseConfig.debug = false;
+      baseConfig.connection.filename = process.env.DB_PATH || './database/erp_nxt_production.sqlite';
     } else if (env === 'test') {
       baseConfig.pool.min = 1;
       baseConfig.pool.max = 5;
-      baseConfig.connection.database = process.env.DB_TEST_NAME || 'erp_nxt_test';
+      baseConfig.connection.filename = process.env.DB_TEST_PATH || path.join(__dirname, '../../database/erp_nxt_test.sqlite');
     }
 
     return baseConfig;

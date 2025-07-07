@@ -11,7 +11,7 @@ const PORT = process.env.PORT || 3002
 
 // Enable CORS for all origins in development
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002', 'https://plataforma-app-nxt.vercel.app'],
+  origin: ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002', 'https://plataforma-app-nxt.vercel.app', 'https://www.plataforma.app'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']

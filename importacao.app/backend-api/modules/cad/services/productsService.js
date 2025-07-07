@@ -1,13 +1,13 @@
-const db = require('../../../src/database/connection');
+const { getDb } = require('../../../src/database/connection');
 
 /**
- * Service layer for products (prd_03_produtos)
+ * Service layer for products (importacao_produtos)
  * Handles all database operations for product management
  */
 
 class ProductsService {
   constructor() {
-    this.tableName = 'prd_03_produtos';
+    this.tableName = 'importacao_produtos';
   }
 
   /**
@@ -18,81 +18,67 @@ class ProductsService {
     limit = 10,
     search = '',
     ativo = null,
-    categoria = null,
-    tipo_produto = null,
-    origem = null,
-    sort = 'descricao',
+    categoria_id = null,
+    sort = 'nome',
     order = 'asc'
   } = {}) {
     try {
       const offset = (page - 1) * limit;
       
+      const db = getDb();
       let query = db(this.tableName)
+        .leftJoin('importacao_categorias', 'importacao_produtos.categoria_id', 'importacao_categorias.id')
         .select([
-          'id_produto',
-          'codigo_produto',
-          'codigo_barras',
-          'descricao',
-          'marca',
-          'modelo',
-          'categoria',
-          'subcategoria',
-          'unidade_medida',
-          'preco_custo',
-          'preco_venda',
-          'margem_lucro',
-          'estoque_minimo',
-          'estoque_maximo',
-          'tipo_produto',
-          'origem',
-          'ativo',
-          'created_at',
-          'updated_at'
+          'importacao_produtos.id',
+          'importacao_produtos.nome',
+          'importacao_produtos.codigo_barras',
+          'importacao_produtos.sku',
+          'importacao_produtos.descricao',
+          'importacao_produtos.categoria_id',
+          'importacao_categorias.nome as categoria_nome',
+          'importacao_produtos.preco_custo',
+          'importacao_produtos.preco_venda',
+          'importacao_produtos.margem_lucro',
+          'importacao_produtos.unidade_medida',
+          'importacao_produtos.peso',
+          'importacao_produtos.dimensoes',
+          'importacao_produtos.status',
+          'importacao_produtos.estoque_minimo',
+          'importacao_produtos.estoque_maximo',
+          'importacao_produtos.created_at',
+          'importacao_produtos.updated_at'
         ]);
 
       // Apply filters
       if (search) {
         query = query.where(function() {
-          this.where('descricao', 'ilike', `%${search}%`)
-              .orWhere('codigo_produto', 'ilike', `%${search}%`)
-              .orWhere('codigo_barras', 'ilike', `%${search}%`)
-              .orWhere('marca', 'ilike', `%${search}%`)
-              .orWhere('modelo', 'ilike', `%${search}%`);
+          this.where('importacao_produtos.nome', 'like', `%${search}%`)
+              .orWhere('importacao_produtos.sku', 'like', `%${search}%`)
+              .orWhere('importacao_produtos.codigo_barras', 'like', `%${search}%`)
+              .orWhere('importacao_produtos.descricao', 'like', `%${search}%`);
         });
       }
 
       if (ativo !== null) {
-        query = query.where('ativo', ativo);
+        query = query.where('importacao_produtos.status', ativo ? 'ativo' : 'inativo');
       }
 
-      if (categoria) {
-        query = query.where('categoria', categoria);
-      }
-
-      if (tipo_produto) {
-        query = query.where('tipo_produto', tipo_produto);
-      }
-
-      if (origem) {
-        query = query.where('origem', origem);
+      if (categoria_id) {
+        query = query.where('importacao_produtos.categoria_id', categoria_id);
       }
 
       // Get total count for pagination
       const totalQuery = query.clone();
-      const [{ count }] = await totalQuery.count('id_produto as count');
+      const [{ count }] = await totalQuery.count('importacao_produtos.id as count');
       const total = parseInt(count);
 
       // Apply sorting and pagination
       const validSortFields = [
-        'descricao', 'codigo_produto', 'marca', 'categoria', 
-        'preco_custo', 'preco_venda', 'estoque_minimo', 'created_at'
+        'nome', 'sku', 'preco_custo', 'preco_venda', 'margem_lucro', 'created_at'
       ];
       
-      if (validSortFields.includes(sort)) {
-        query = query.orderBy(sort, order);
-      } else {
-        query = query.orderBy('descricao', 'asc');
-      }
+      const sortField = validSortFields.includes(sort) ? `importacao_produtos.${sort}` : 'importacao_produtos.nome';
+      query = query.orderBy(sortField, order);
 
       const products = await query.limit(limit).offset(offset);
 
@@ -114,48 +100,30 @@ class ProductsService {
   }
 
   /**
-   * Get product by ID with detailed information
+   * Get product by ID
    */
   async getProductById(id) {
     try {
+      const db = getDb();
       const product = await db(this.tableName)
-        .where('id_produto', id)
+        .leftJoin('importacao_categorias', 'importacao_produtos.categoria_id', 'importacao_categorias.id')
+        .leftJoin('importacao_estoque', 'importacao_produtos.id', 'importacao_estoque.produto_id')
+        .select([
+          'importacao_produtos.*',
+          'importacao_categorias.nome as categoria_nome',
+          'importacao_estoque.quantidade as estoque_atual',
+          'importacao_estoque.quantidade_reservada',
+          'importacao_estoque.custo_medio',
+          'importacao_estoque.localizacao'
+        ])
+        .where('importacao_produtos.id', id)
         .first();
 
       if (!product) {
         throw new Error('Produto não encontrado');
       }
 
-      // Get stock information if exists
-      let stockInfo = null;
-      try {
-        stockInfo = await db('est_03_saldos_estoque')
-          .select(['quantidade_atual', 'quantidade_reservada', 'quantidade_disponivel'])
-          .where('id_produto', id)
-          .first();
-      } catch (err) {
-        // Stock table might not exist yet
-        console.warn('Stock table not available:', err.message);
-      }
-
-      // Get supplier information if exists
-      let supplierInfo = null;
-      if (product.id_fornecedor_principal) {
-        try {
-          supplierInfo = await db('cad_04_fornecedores')
-            .select(['nome_razao_social', 'nome_fantasia', 'telefone', 'email'])
-            .where('id_fornecedor', product.id_fornecedor_principal)
-            .first();
-        } catch (err) {
-          console.warn('Supplier table not available:', err.message);
-        }
-      }
-
-      return {
-        ...product,
-        estoque: stockInfo,
-        fornecedor: supplierInfo
-      };
+      return product;
     } catch (error) {
       console.error('Error fetching product by ID:', error);
       throw new Error('Erro ao buscar produto: ' + error.message);
@@ -167,16 +135,20 @@ class ProductsService {
    */
   async createProduct(productData) {
     try {
-      // Check if product code already exists
-      const existingProduct = await db(this.tableName)
-        .where('codigo_produto', productData.codigo_produto)
-        .first();
+      const db = getDb();
+      
+      // Check if SKU already exists
+      if (productData.sku) {
+        const existingProduct = await db(this.tableName)
+          .where('sku', productData.sku)
+          .first();
 
-      if (existingProduct) {
-        throw new Error('Já existe um produto com este código');
+        if (existingProduct) {
+          throw new Error('Já existe um produto com este SKU');
+        }
       }
 
-      // Check barcode if provided
+      // Check if barcode already exists
       if (productData.codigo_barras) {
         const existingBarcode = await db(this.tableName)
           .where('codigo_barras', productData.codigo_barras)
@@ -187,20 +159,39 @@ class ProductsService {
         }
       }
 
-      // Calculate margin if both prices are provided
-      if (productData.preco_custo && productData.preco_venda) {
-        productData.margem_lucro = ((productData.preco_venda - productData.preco_custo) / productData.preco_custo * 100).toFixed(2);
+      // Calculate margin if not provided
+      if (!productData.margem_lucro && productData.preco_custo && productData.preco_venda) {
+        const custo = parseFloat(productData.preco_custo);
+        const venda = parseFloat(productData.preco_venda);
+        productData.margem_lucro = custo > 0 ? ((venda - custo) / custo * 100).toFixed(2) : 0;
       }
 
-      const [newProduct] = await db(this.tableName)
+      const [newProductId] = await db(this.tableName)
         .insert({
           ...productData,
-          created_at: new Date(),
-          updated_at: new Date()
-        })
-        .returning('*');
+          status: productData.status || 'ativo',
+          preco_custo: productData.preco_custo || 0,
+          preco_venda: productData.preco_venda || 0,
+          margem_lucro: productData.margem_lucro || 0,
+          estoque_minimo: productData.estoque_minimo || 0,
+          estoque_maximo: productData.estoque_maximo || 0,
+          peso: productData.peso || 0,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        });
 
-      return newProduct;
+      // Create initial stock entry
+      await db('importacao_estoque').insert({
+        produto_id: newProductId,
+        quantidade: 0,
+        quantidade_reservada: 0,
+        custo_medio: productData.preco_custo || 0,
+        localizacao: productData.localizacao || '',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      });
+
+      return await this.getProductById(newProductId);
     } catch (error) {
       console.error('Error creating product:', error);
       if (error.message.includes('Já existe')) {
@@ -215,53 +206,53 @@ class ProductsService {
    */
   async updateProduct(id, productData) {
     try {
+      const db = getDb();
+      
       // Check if product exists
       const existingProduct = await this.getProductById(id);
 
-      // Check if product code is being changed and if it's already in use
-      if (productData.codigo_produto && productData.codigo_produto !== existingProduct.codigo_produto) {
-        const duplicateProduct = await db(this.tableName)
-          .where('codigo_produto', productData.codigo_produto)
-          .where('id_produto', '!=', id)
+      // Check if SKU is being changed and already exists
+      if (productData.sku && productData.sku !== existingProduct.sku) {
+        const duplicateSku = await db(this.tableName)
+          .where('sku', productData.sku)
+          .whereNot('id', id)
           .first();
 
-        if (duplicateProduct) {
-          throw new Error('Já existe outro produto com este código');
+        if (duplicateSku) {
+          throw new Error('Já existe um produto com este SKU');
         }
       }
 
-      // Check barcode if being changed
+      // Check if barcode is being changed and already exists
       if (productData.codigo_barras && productData.codigo_barras !== existingProduct.codigo_barras) {
         const duplicateBarcode = await db(this.tableName)
           .where('codigo_barras', productData.codigo_barras)
-          .where('id_produto', '!=', id)
+          .whereNot('id', id)
           .first();
 
         if (duplicateBarcode) {
-          throw new Error('Já existe outro produto com este código de barras');
+          throw new Error('Já existe um produto com este código de barras');
         }
       }
 
-      // Calculate margin if both prices are provided
-      const preco_custo = productData.preco_custo || existingProduct.preco_custo;
-      const preco_venda = productData.preco_venda || existingProduct.preco_venda;
-      
-      if (preco_custo && preco_venda) {
-        productData.margem_lucro = ((preco_venda - preco_custo) / preco_custo * 100).toFixed(2);
+      // Recalculate margin if prices changed
+      if (productData.preco_custo || productData.preco_venda) {
+        const custo = parseFloat(productData.preco_custo || existingProduct.preco_custo);
+        const venda = parseFloat(productData.preco_venda || existingProduct.preco_venda);
+        productData.margem_lucro = custo > 0 ? ((venda - custo) / custo * 100).toFixed(2) : 0;
       }
 
-      const [updatedProduct] = await db(this.tableName)
-        .where('id_produto', id)
+      await db(this.tableName)
+        .where('id', id)
         .update({
           ...productData,
-          updated_at: new Date()
-        })
-        .returning('*');
+          updated_at: new Date().toISOString()
+        });
 
-      return updatedProduct;
+      return await this.getProductById(id);
     } catch (error) {
       console.error('Error updating product:', error);
-      if (error.message.includes('Já existe') || error.message.includes('não encontrado')) {
+      if (error.message.includes('não encontrado') || error.message.includes('Já existe')) {
         throw error;
       }
       throw new Error('Erro ao atualizar produto: ' + error.message);
@@ -269,50 +260,40 @@ class ProductsService {
   }
 
   /**
-   * Delete product (soft delete)
+   * Delete product
    */
   async deleteProduct(id) {
     try {
+      const db = getDb();
+      
       // Check if product exists
       await this.getProductById(id);
 
-      // Check if product has stock movements
-      let hasMovements = false;
-      try {
-        hasMovements = await db('est_04_movimentacoes')
-          .where('id_produto', id)
-          .first();
-      } catch (err) {
-        // Stock movements table might not exist yet
-      }
+      // Check if product has sales or purchase history
+      const hasSales = await db('importacao_vendas_itens')
+        .where('produto_id', id)
+        .first();
 
-      // Check if product is in active sales
-      let hasSales = false;
-      try {
-        hasSales = await db('vnd_06_itens_venda')
-          .where('id_produto', id)
-          .first();
-      } catch (err) {
-        // Sales table might not exist yet
-      }
+      const hasOrders = await db('importacao_pedidos_itens')
+        .where('produto_id', id)
+        .first();
 
-      if (hasMovements || hasSales) {
-        // Soft delete only
+      if (hasSales || hasOrders) {
+        // Soft delete - mark as inactive
         await db(this.tableName)
-          .where('id_produto', id)
-          .update({
-            ativo: false,
-            updated_at: new Date()
+          .where('id', id)
+          .update({ 
+            status: 'inativo',
+            updated_at: new Date().toISOString()
           });
-
-        return { message: 'Produto desativado com sucesso (possui movimentações associadas)' };
+        
+        return { soft_deleted: true };
       } else {
-        // Can be completely removed
-        await db(this.tableName)
-          .where('id_produto', id)
-          .del();
-
-        return { message: 'Produto removido com sucesso' };
+        // Hard delete if no dependencies
+        await db('importacao_estoque').where('produto_id', id).del();
+        await db(this.tableName).where('id', id).del();
+        
+        return { hard_deleted: true };
       }
     } catch (error) {
       console.error('Error deleting product:', error);
@@ -324,300 +305,114 @@ class ProductsService {
   }
 
   /**
+   * Get products for dropdown/select
+   */
+  async getProductsForSelect(activeOnly = true) {
+    try {
+      const db = getDb();
+      let query = db(this.tableName)
+        .select('id', 'nome', 'sku', 'preco_venda', 'unidade_medida')
+        .orderBy('nome', 'asc');
+
+      if (activeOnly) {
+        query = query.where('status', 'ativo');
+      }
+
+      return await query;
+    } catch (error) {
+      console.error('Error getting products for select:', error);
+      throw new Error('Erro ao buscar produtos para seleção: ' + error.message);
+    }
+  }
+
+  /**
+   * Search products
+   */
+  async searchProducts(searchTerm) {
+    try {
+      const db = getDb();
+      return await db(this.tableName)
+        .leftJoin('importacao_estoque', 'importacao_produtos.id', 'importacao_estoque.produto_id')
+        .select([
+          'importacao_produtos.id',
+          'importacao_produtos.nome',
+          'importacao_produtos.sku',
+          'importacao_produtos.preco_venda',
+          'importacao_produtos.unidade_medida',
+          'importacao_estoque.quantidade as estoque_atual'
+        ])
+        .where('importacao_produtos.status', 'ativo')
+        .where(function() {
+          this.where('importacao_produtos.nome', 'like', `%${searchTerm}%`)
+              .orWhere('importacao_produtos.sku', 'like', `%${searchTerm}%`)
+              .orWhere('importacao_produtos.codigo_barras', 'like', `%${searchTerm}%`);
+        })
+        .orderBy('importacao_produtos.nome', 'asc')
+        .limit(20);
+    } catch (error) {
+      console.error('Error searching products:', error);
+      throw new Error('Erro ao pesquisar produtos: ' + error.message);
+    }
+  }
+
+  /**
    * Get product statistics
    */
   async getProductStats() {
     try {
-      const stats = await db(this.tableName)
-        .select([
-          db.raw('COUNT(*) as total'),
-          db.raw('COUNT(*) FILTER (WHERE ativo = true) as ativos'),
-          db.raw('COUNT(*) FILTER (WHERE ativo = false) as inativos'),
-          db.raw('AVG(preco_venda) as preco_medio'),
-          db.raw('COUNT(*) FILTER (WHERE estoque_minimo > 0) as com_estoque_minimo'),
-          db.raw('COUNT(*) FILTER (WHERE origem = \'NACIONAL\') as nacionais'),
-          db.raw('COUNT(*) FILTER (WHERE origem = \'IMPORTADO\') as importados')
-        ])
-        .first();
-
-      // Get products by category
-      const byCategory = await db(this.tableName)
-        .select('categoria')
-        .count('id_produto as count')
-        .where('ativo', true)
-        .whereNotNull('categoria')
-        .groupBy('categoria')
-        .orderBy('count', 'desc')
-        .limit(10);
-
-      // Get products by type
-      const byType = await db(this.tableName)
-        .select('tipo_produto')
-        .count('id_produto as count')
-        .where('ativo', true)
-        .groupBy('tipo_produto');
-
-      // Get price ranges
-      const priceRanges = await db(this.tableName)
-        .select([
-          db.raw('COUNT(*) FILTER (WHERE preco_venda < 100) as ate_100'),
-          db.raw('COUNT(*) FILTER (WHERE preco_venda >= 100 AND preco_venda < 500) as de_100_a_500'),
-          db.raw('COUNT(*) FILTER (WHERE preco_venda >= 500 AND preco_venda < 1000) as de_500_a_1000'),
-          db.raw('COUNT(*) FILTER (WHERE preco_venda >= 1000) as acima_1000')
-        ])
-        .where('ativo', true)
-        .whereNotNull('preco_venda')
-        .first();
-
-      return {
-        ...stats,
-        byCategory: byCategory.reduce((acc, item) => {
-          acc[item.categoria] = parseInt(item.count);
-          return acc;
-        }, {}),
-        byType: byType.reduce((acc, item) => {
-          acc[item.tipo_produto] = parseInt(item.count);
-          return acc;
-        }, {}),
-        priceRanges
-      };
-    } catch (error) {
-      console.error('Error fetching product stats:', error);
-      throw new Error('Erro ao buscar estatísticas: ' + error.message);
-    }
-  }
-
-  /**
-   * Search products with advanced filters
-   */
-  async searchProducts({
-    termo = '',
-    categoria = null,
-    subcategoria = null,
-    marca = null,
-    tipo_produto = null,
-    origem = null,
-    preco_min = null,
-    preco_max = null,
-    ativo = null,
-    com_estoque = null
-  } = {}) {
-    try {
-      let query = db(this.tableName)
-        .select([
-          'id_produto',
-          'codigo_produto',
-          'codigo_barras',
-          'descricao',
-          'marca',
-          'modelo',
-          'categoria',
-          'subcategoria',
-          'unidade_medida',
-          'preco_custo',
-          'preco_venda',
-          'margem_lucro',
-          'estoque_minimo',
-          'tipo_produto',
-          'origem',
-          'ativo'
-        ]);
-
-      if (termo) {
-        query = query.where(function() {
-          this.where('descricao', 'ilike', `%${termo}%`)
-              .orWhere('codigo_produto', 'ilike', `%${termo}%`)
-              .orWhere('codigo_barras', 'ilike', `%${termo}%`)
-              .orWhere('marca', 'ilike', `%${termo}%`)
-              .orWhere('modelo', 'ilike', `%${termo}%`);
-        });
-      }
-
-      if (categoria) {
-        query = query.where('categoria', categoria);
-      }
-
-      if (subcategoria) {
-        query = query.where('subcategoria', subcategoria);
-      }
-
-      if (marca) {
-        query = query.where('marca', 'ilike', `%${marca}%`);
-      }
-
-      if (tipo_produto) {
-        query = query.where('tipo_produto', tipo_produto);
-      }
-
-      if (origem) {
-        query = query.where('origem', origem);
-      }
-
-      if (preco_min !== null) {
-        query = query.where('preco_venda', '>=', preco_min);
-      }
-
-      if (preco_max !== null) {
-        query = query.where('preco_venda', '<=', preco_max);
-      }
-
-      if (ativo !== null) {
-        query = query.where('ativo', ativo);
-      }
-
-      const products = await query
-        .orderBy('descricao', 'asc')
-        .limit(50); // Limit advanced search results
-
-      // Add stock information if requested
-      if (com_estoque && products.length > 0) {
-        try {
-          const stockData = await db('est_03_saldos_estoque')
-            .select(['id_produto', 'quantidade_atual', 'quantidade_disponivel'])
-            .whereIn('id_produto', products.map(p => p.id_produto));
-
-          const stockMap = stockData.reduce((acc, stock) => {
-            acc[stock.id_produto] = stock;
-            return acc;
-          }, {});
-
-          products.forEach(product => {
-            product.estoque = stockMap[product.id_produto] || null;
-          });
-
-          if (com_estoque === 'sem_estoque') {
-            return products.filter(p => !p.estoque || p.estoque.quantidade_disponivel <= 0);
-          } else if (com_estoque === 'estoque_baixo') {
-            return products.filter(p => p.estoque && p.estoque.quantidade_disponivel <= p.estoque_minimo);
-          }
-        } catch (err) {
-          console.warn('Stock table not available for filtering:', err.message);
-        }
-      }
-
-      return products;
-    } catch (error) {
-      console.error('Error in advanced product search:', error);
-      throw new Error('Erro na busca avançada: ' + error.message);
-    }
-  }
-
-  /**
-   * Get products for dropdown/select components
-   */
-  async getProductsForSelect(search = '') {
-    try {
-      let query = db(this.tableName)
-        .select([
-          'id_produto as value',
-          'descricao as label',
-          'codigo_produto',
-          'preco_venda',
-          'unidade_medida',
-          'estoque_minimo'
-        ])
-        .where('ativo', true);
-
-      if (search) {
-        query = query.where(function() {
-          this.where('descricao', 'ilike', `%${search}%`)
-              .orWhere('codigo_produto', 'ilike', `%${search}%`);
-        });
-      }
-
-      const products = await query
-        .orderBy('descricao', 'asc')
-        .limit(20);
-
-      return products.map(product => ({
-        value: product.value,
-        label: `${product.label} (${product.codigo_produto})`,
-        codigo: product.codigo_produto,
-        preco: product.preco_venda,
-        unidade: product.unidade_medida,
-        estoque_minimo: product.estoque_minimo
-      }));
-    } catch (error) {
-      console.error('Error fetching products for select:', error);
-      throw new Error('Erro ao buscar produtos: ' + error.message);
-    }
-  }
-
-  /**
-   * Get categories for filters
-   */
-  async getCategories() {
-    try {
-      const categories = await db(this.tableName)
-        .distinct('categoria')
-        .whereNotNull('categoria')
-        .where('ativo', true)
-        .orderBy('categoria');
-
-      return categories.map(c => c.categoria).filter(Boolean);
-    } catch (error) {
-      console.error('Error fetching categories:', error);
-      throw new Error('Erro ao buscar categorias: ' + error.message);
-    }
-  }
-
-  /**
-   * Get subcategories for a specific category
-   */
-  async getSubcategories(category) {
-    try {
-      const subcategories = await db(this.tableName)
-        .distinct('subcategoria')
-        .where('categoria', category)
-        .whereNotNull('subcategoria')
-        .where('ativo', true)
-        .orderBy('subcategoria');
-
-      return subcategories.map(s => s.subcategoria).filter(Boolean);
-    } catch (error) {
-      console.error('Error fetching subcategories:', error);
-      throw new Error('Erro ao buscar subcategorias: ' + error.message);
-    }
-  }
-
-  /**
-   * Bulk update prices
-   */
-  async bulkUpdatePrices(updates) {
-    try {
-      const results = [];
+      const db = getDb();
       
-      for (const update of updates) {
-        const { id_produto, preco_custo, preco_venda, margem_lucro } = update;
-        
-        // Calculate margin if prices are provided
-        let calculatedMargin = margem_lucro;
-        if (preco_custo && preco_venda) {
-          calculatedMargin = ((preco_venda - preco_custo) / preco_custo * 100).toFixed(2);
-        }
-
-        const [updatedProduct] = await db(this.tableName)
-          .where('id_produto', id_produto)
-          .update({
-            preco_custo,
-            preco_venda,
-            margem_lucro: calculatedMargin,
-            updated_at: new Date()
-          })
-          .returning(['id_produto', 'codigo_produto', 'descricao']);
-
-        if (updatedProduct) {
-          results.push(updatedProduct);
-        }
-      }
+      const [
+        totalProducts,
+        activeProducts,
+        inactiveProducts,
+        totalValue,
+        lowStockCount
+      ] = await Promise.all([
+        db(this.tableName).count('id as count').first(),
+        db(this.tableName).where('status', 'ativo').count('id as count').first(),
+        db(this.tableName).where('status', 'inativo').count('id as count').first(),
+        db(this.tableName).sum('preco_venda as total').first(),
+        db(this.tableName)
+          .leftJoin('importacao_estoque', 'importacao_produtos.id', 'importacao_estoque.produto_id')
+          .whereRaw('importacao_estoque.quantidade <= importacao_produtos.estoque_minimo')
+          .count('importacao_produtos.id as count')
+          .first()
+      ]);
 
       return {
-        message: `${results.length} produtos atualizados com sucesso`,
-        products: results
+        total: parseInt(totalProducts.count) || 0,
+        ativo: parseInt(activeProducts.count) || 0,
+        inativo: parseInt(inactiveProducts.count) || 0,
+        valor_total_estoque: parseFloat(totalValue.total) || 0,
+        produtos_estoque_baixo: parseInt(lowStockCount.count) || 0
       };
     } catch (error) {
-      console.error('Error in bulk price update:', error);
-      throw new Error('Erro na atualização em lote: ' + error.message);
+      console.error('Error getting product stats:', error);
+      throw new Error('Erro ao buscar estatísticas de produtos: ' + error.message);
+    }
+  }
+
+  /**
+   * Update product stock
+   */
+  async updateStock(id, stockData) {
+    try {
+      const db = getDb();
+      await this.getProductById(id);
+
+      await db('importacao_estoque')
+        .where('produto_id', id)
+        .update({
+          ...stockData,
+          data_ultimo_movimento: new Date().toISOString().split('T')[0],
+          updated_at: new Date().toISOString()
+        });
+
+      return await this.getProductById(id);
+    } catch (error) {
+      console.error('Error updating stock:', error);
+      throw new Error('Erro ao atualizar estoque: ' + error.message);
     }
   }
 }

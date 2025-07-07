@@ -339,6 +339,325 @@ class TransportationController {
       });
     }
   }
+
+  /**
+   * Get delivery performance metrics
+   * GET /api/log/transportation/performance
+   */
+  async getDeliveryPerformance(req, res) {
+    try {
+      const { data_inicio, data_fim, transportadora_id } = req.query;
+      
+      const performance = await transportationService.getDeliveryPerformance({
+        data_inicio,
+        data_fim,
+        transportadora_id: transportadora_id ? parseInt(transportadora_id) : null
+      });
+
+      res.json({
+        success: true,
+        message: 'Métricas de performance recuperadas com sucesso',
+        data: performance,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Error in getDeliveryPerformance:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Erro interno do servidor',
+        message: error.message,
+        timestamp: new Date().toISOString()
+      });
+    }
+  }
+
+  /**
+   * Get transportation analytics
+   * GET /api/log/transportation/analytics
+   */
+  async getTransportationAnalytics(req, res) {
+    try {
+      const { periodo, granularidade, metricas } = req.query;
+      
+      const analytics = await transportationService.getTransportationAnalytics({
+        periodo,
+        granularidade: granularidade || 'day',
+        metricas: metricas ? metricas.split(',') : ['volume', 'custo', 'performance']
+      });
+
+      res.json({
+        success: true,
+        message: 'Analytics recuperados com sucesso',
+        data: analytics,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Error in getTransportationAnalytics:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Erro interno do servidor',
+        message: error.message,
+        timestamp: new Date().toISOString()
+      });
+    }
+  }
+
+  /**
+   * Get delivery route optimization
+   * POST /api/log/transportation/optimize-route
+   */
+  async optimizeRoute(req, res) {
+    try {
+      const { pontos_entrega, veiculo_id, restricoes } = req.body;
+
+      if (!pontos_entrega || !Array.isArray(pontos_entrega) || pontos_entrega.length === 0) {
+        return res.status(400).json({
+          success: false,
+          error: 'Dados inválidos',
+          message: 'Pontos de entrega são obrigatórios',
+          timestamp: new Date().toISOString()
+        });
+      }
+
+      const optimizedRoute = await transportationService.optimizeDeliveryRoute({
+        pontos_entrega,
+        veiculo_id,
+        restricoes
+      });
+
+      res.json({
+        success: true,
+        message: 'Rota otimizada com sucesso',
+        data: optimizedRoute,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Error in optimizeRoute:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Erro interno do servidor',
+        message: error.message,
+        timestamp: new Date().toISOString()
+      });
+    }
+  }
+
+  /**
+   * Schedule delivery
+   * POST /api/log/transportation/schedule-delivery
+   */
+  async scheduleDelivery(req, res) {
+    try {
+      const { 
+        pedido_id, 
+        data_entrega_solicitada, 
+        janela_entrega, 
+        prioridade, 
+        instrucoes_especiais 
+      } = req.body;
+
+      if (!pedido_id || !data_entrega_solicitada) {
+        return res.status(400).json({
+          success: false,
+          error: 'Dados inválidos',
+          message: 'Pedido ID e data de entrega são obrigatórios',
+          timestamp: new Date().toISOString()
+        });
+      }
+
+      const delivery = await transportationService.scheduleDelivery({
+        pedido_id,
+        data_entrega_solicitada,
+        janela_entrega,
+        prioridade,
+        instrucoes_especiais
+      });
+
+      res.status(201).json({
+        success: true,
+        message: 'Entrega agendada com sucesso',
+        data: delivery,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Error in scheduleDelivery:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Erro interno do servidor',
+        message: error.message,
+        timestamp: new Date().toISOString()
+      });
+    }
+  }
+
+  /**
+   * Get freight comparison
+   * POST /api/log/transportation/compare-freight
+   */
+  async compareFreight(req, res) {
+    try {
+      const { origem, destino, peso, volume, valor_mercadoria, transportadoras } = req.body;
+
+      if (!origem || !destino || !peso) {
+        return res.status(400).json({
+          success: false,
+          error: 'Dados inválidos',
+          message: 'Origem, destino e peso são obrigatórios',
+          timestamp: new Date().toISOString()
+        });
+      }
+
+      const comparison = await transportationService.compareFreightRates({
+        origem,
+        destino,
+        peso,
+        volume,
+        valor_mercadoria,
+        transportadoras
+      });
+
+      res.json({
+        success: true,
+        message: 'Comparação de frete realizada com sucesso',
+        data: comparison,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Error in compareFreight:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Erro interno do servidor',
+        message: error.message,
+        timestamp: new Date().toISOString()
+      });
+    }
+  }
+
+  /**
+   * Create delivery proof
+   * POST /api/log/transportation/:id/proof
+   */
+  async createDeliveryProof(req, res) {
+    try {
+      const { id } = req.params;
+      const { 
+        tipo_comprovante, 
+        data_entrega, 
+        recebedor_nome, 
+        recebedor_documento,
+        observacoes,
+        anexos 
+      } = req.body;
+
+      if (!tipo_comprovante || !data_entrega || !recebedor_nome) {
+        return res.status(400).json({
+          success: false,
+          error: 'Dados inválidos',
+          message: 'Tipo de comprovante, data de entrega e recebedor são obrigatórios',
+          timestamp: new Date().toISOString()
+        });
+      }
+
+      const proof = await transportationService.createDeliveryProof(parseInt(id), {
+        tipo_comprovante,
+        data_entrega,
+        recebedor_nome,
+        recebedor_documento,
+        observacoes,
+        anexos
+      });
+
+      res.status(201).json({
+        success: true,
+        message: 'Comprovante de entrega criado com sucesso',
+        data: proof,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Error in createDeliveryProof:', error);
+      const statusCode = error.message.includes('não encontrado') ? 404 : 500;
+      
+      res.status(statusCode).json({
+        success: false,
+        error: statusCode === 404 ? 'Transporte não encontrado' : 'Erro interno do servidor',
+        message: error.message,
+        timestamp: new Date().toISOString()
+      });
+    }
+  }
+
+  /**
+   * Get real-time tracking updates
+   * GET /api/log/transportation/:id/real-time-tracking
+   */
+  async getRealTimeTracking(req, res) {
+    try {
+      const { id } = req.params;
+      const tracking = await transportationService.getRealTimeTracking(parseInt(id));
+
+      res.json({
+        success: true,
+        message: 'Rastreamento em tempo real recuperado com sucesso',
+        data: tracking,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Error in getRealTimeTracking:', error);
+      const statusCode = error.message.includes('não encontrado') ? 404 : 500;
+      
+      res.status(statusCode).json({
+        success: false,
+        error: statusCode === 404 ? 'Transporte não encontrado' : 'Erro interno do servidor',
+        message: error.message,
+        timestamp: new Date().toISOString()
+      });
+    }
+  }
+
+  /**
+   * Update GPS location
+   * POST /api/log/transportation/:id/update-location
+   */
+  async updateGPSLocation(req, res) {
+    try {
+      const { id } = req.params;
+      const { latitude, longitude, timestamp, velocidade, direcao } = req.body;
+
+      if (!latitude || !longitude) {
+        return res.status(400).json({
+          success: false,
+          error: 'Dados inválidos',
+          message: 'Latitude e longitude são obrigatórias',
+          timestamp: new Date().toISOString()
+        });
+      }
+
+      const result = await transportationService.updateGPSLocation(parseInt(id), {
+        latitude,
+        longitude,
+        timestamp: timestamp || new Date().toISOString(),
+        velocidade,
+        direcao
+      });
+
+      res.json({
+        success: true,
+        message: 'Localização GPS atualizada com sucesso',
+        data: result,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Error in updateGPSLocation:', error);
+      const statusCode = error.message.includes('não encontrado') ? 404 : 500;
+      
+      res.status(statusCode).json({
+        success: false,
+        error: statusCode === 404 ? 'Transporte não encontrado' : 'Erro interno do servidor',
+        message: error.message,
+        timestamp: new Date().toISOString()
+      });
+    }
+  }
 }
 
 module.exports = new TransportationController();

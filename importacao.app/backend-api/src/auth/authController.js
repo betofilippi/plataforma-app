@@ -1,7 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
-const knex = require('../database/connection');
+const { getDb } = require('../database/connection');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
@@ -20,29 +20,12 @@ class AuthController {
         });
       }
 
-      // Find user by email (with fallback for development)
-      let user;
-      try {
-        user = await knex('auth_users')
-          .where({ email: email.toLowerCase() })
-          .andWhere({ status: 'active' })
-          .first();
-      } catch (dbError) {
-        // Fallback for development without database
-        if (email === 'admin@plataforma.app' && password === 'admin123') {
-          user = {
-            id: 1,
-            email: 'admin@plataforma.app',
-            password_hash: await bcrypt.hash('admin123', 10),
-            first_name: 'Admin',
-            last_name: 'Plataforma',
-            role: 'admin',
-            status: 'active'
-          };
-        } else {
-          user = null;
-        }
-      }
+      // Find user by email
+      const knex = getDb();
+      const user = await knex('auth_users')
+        .where({ email: email.toLowerCase() })
+        .andWhere({ status: 'active' })
+        .first();
 
       if (!user) {
         return res.status(401).json({
@@ -65,31 +48,23 @@ class AuthController {
       const accessToken = this.generateAccessToken(user);
       const refreshToken = this.generateRefreshToken();
 
-      // Store session (with fallback for development)
+      // Store session
       const tokenHash = crypto.createHash('sha256').update(accessToken).digest('hex');
       const refreshTokenHash = crypto.createHash('sha256').update(refreshToken).digest('hex');
       
-      try {
-        await knex('auth_sessions').insert({
-          user_id: user.id,
-          token_hash: tokenHash,
-          refresh_token_hash: refreshTokenHash,
-          expires_at: new Date(Date.now() + this.parseExpiration(JWT_EXPIRES_IN)),
-          ip_address: req.ip,
-          user_agent: req.get('User-Agent') || ''
-        });
-      } catch (dbError) {
-        console.warn('Session storage failed - continuing without database session:', dbError.message);
-      }
+      await knex('auth_sessions').insert({
+        user_id: user.id,
+        token_hash: tokenHash,
+        refresh_token_hash: refreshTokenHash,
+        expires_at: new Date(Date.now() + this.parseExpiration(JWT_EXPIRES_IN)),
+        ip_address: req.ip,
+        user_agent: req.get('User-Agent') || ''
+      });
 
-      // Update last login (with fallback for development)
-      try {
-        await knex('auth_users')
-          .where({ id: user.id })
-          .update({ last_login_at: new Date() });
-      } catch (dbError) {
-        console.warn('Last login update failed - continuing:', dbError.message);
-      }
+      // Update last login
+      await knex('auth_users')
+        .where({ id: user.id })
+        .update({ last_login_at: new Date() });
 
       // Return user data (without password)
       const userData = {
@@ -129,6 +104,7 @@ class AuthController {
         const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
         
         // Remove session from database
+        const knex = getDb();
         await knex('auth_sessions')
           .where({ token_hash: tokenHash })
           .del();
@@ -160,6 +136,7 @@ class AuthController {
       }
 
       const refreshTokenHash = crypto.createHash('sha256').update(refresh_token).digest('hex');
+      const knex = getDb();
 
       // Find valid session
       const session = await knex('auth_sessions')
@@ -225,6 +202,7 @@ class AuthController {
   async getProfile(req, res) {
     try {
       const userId = req.user.id;
+      const knex = getDb();
 
       const user = await knex('auth_users')
         .select('id', 'email', 'first_name', 'last_name', 'role', 'preferences', 'last_login_at')
@@ -256,6 +234,7 @@ class AuthController {
     try {
       const userId = req.user.id;
       const { first_name, last_name, preferences } = req.body;
+      const knex = getDb();
 
       const updateData = {};
       if (first_name) updateData.first_name = first_name;

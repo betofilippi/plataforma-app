@@ -1,6 +1,6 @@
 const express = require('express')
 const router = express.Router()
-const knex = require('../database/connection')
+const { getDb } = require('../database/connection')
 const { authMiddleware } = require('../middleware/auth')
 
 // Apply authentication middleware to all dashboard routes
@@ -9,40 +9,28 @@ router.use(authMiddleware)
 // Get dashboard statistics
 router.get('/stats', async (req, res) => {
   try {
-    // Get data from all 18 importacao_ tables (with fallback for development)
-    let counts;
-    try {
-      counts = await Promise.all([
-        knex('importacao_clientes').count('id as count').first(),
-        knex('importacao_fornecedores').count('id as count').first(),
-        knex('importacao_produtos').count('id as count').first(),
-        knex('importacao_categorias').count('id as count').first(),
-        knex('importacao_estoque').count('id as count').first(),
-        knex('importacao_vendas').count('id as count').first(),
-        knex('importacao_pedidos').count('id as count').first(),
-        knex('importacao_notas_fiscais').count('id as count').first(),
-        knex('importacao_transporte').count('id as count').first(),
-        knex('importacao_relatorios').count('id as count').first(),
-        knex('importacao_configuracoes').count('id as count').first(),
-        knex('importacao_integracao_ml').count('id as count').first(),
-        knex('importacao_integracao_instagram').count('id as count').first(),
-        knex('importacao_integracao_bling').count('id as count').first(),
-        knex('importacao_integracao_supabase').count('id as count').first(),
-        knex('importacao_integracao_zapi').count('id as count').first(),
-        knex('importacao_integracao_make').count('id as count').first(),
-        knex('importacao_usuarios').count('id as count').first()
-      ]);
-    } catch (dbError) {
-      console.warn('Database query failed - using mock data:', dbError.message);
-      // Fallback mock data for development
-      counts = [
-        { count: '1247' }, { count: '85' }, { count: '2340' }, { count: '45' },
-        { count: '1890' }, { count: '8934' }, { count: '156' }, { count: '234' },
-        { count: '78' }, { count: '89' }, { count: '12' }, { count: '345' },
-        { count: '234' }, { count: '456' }, { count: '123' }, { count: '567' },
-        { count: '78' }, { count: '23' }
-      ];
-    }
+    const knex = getDb();
+    // Get data from all 18 importacao_ tables
+    const counts = await Promise.all([
+      knex('importacao_clientes').count('id as count').first(),
+      knex('importacao_fornecedores').count('id as count').first(),
+      knex('importacao_produtos').count('id as count').first(),
+      knex('importacao_categorias').count('id as count').first(),
+      knex('importacao_estoque').count('id as count').first(),
+      knex('importacao_vendas').count('id as count').first(),
+      knex('importacao_pedidos').count('id as count').first(),
+      knex('importacao_notas_fiscais').count('id as count').first(),
+      knex('importacao_transporte').count('id as count').first(),
+      knex('importacao_relatorios').count('id as count').first(),
+      knex('importacao_configuracoes').count('id as count').first(),
+      knex('importacao_integracao_ml').count('id as count').first(),
+      knex('importacao_integracao_instagram').count('id as count').first(),
+      knex('importacao_integracao_bling').count('id as count').first(),
+      knex('importacao_integracao_supabase').count('id as count').first(),
+      knex('importacao_integracao_zapi').count('id as count').first(),
+      knex('importacao_integracao_make').count('id as count').first(),
+      knex('importacao_usuarios').count('id as count').first()
+    ]);
 
     const [
       importacaoClientesCount,
@@ -71,36 +59,25 @@ router.get('/stats', async (req, res) => {
     const totalClientes = parseInt(importacaoClientesCount.count) || 0
     const totalPedidos = parseInt(importacaoPedidosCount.count) || 0
 
-    // Get recent sales data for revenue calculation (with fallback)
-    let faturamentoMes = 2847293.45; // Default mock value
-    try {
-      const recentSales = await knex('importacao_vendas')
-        .select('valor_total', 'data_venda')
-        .whereRaw("data_venda >= date_trunc('month', CURRENT_DATE)")
-        .orderBy('data_venda', 'desc')
+    // Get recent sales data for revenue calculation
+    const recentSales = await knex('importacao_vendas')
+      .select('valor_total', 'data_venda')
+      .whereRaw("data_venda >= date('now', 'start of month')")
+      .orderBy('data_venda', 'desc')
 
-      faturamentoMes = recentSales.reduce((total, sale) => {
-        const valor = parseFloat(sale.valor_total) || 0
-        return total + valor
-      }, 0)
-    } catch (dbError) {
-      console.warn('Sales data query failed - using mock revenue:', dbError.message);
-    }
+    const faturamentoMes = recentSales.reduce((total, sale) => {
+      const valor = parseFloat(sale.valor_total) || 0
+      return total + valor
+    }, 0)
 
     // Calculate growth percentage (mock calculation for now)
     const crescimentoVendas = totalVendas > 0 ? Math.round((totalVendas * 0.125)) : 0
 
-    // Get pending orders count (with fallback)
-    let pedidosPendentes;
-    try {
-      pedidosPendentes = await knex('importacao_pedidos')
-        .where('status', 'pendente')
-        .count('id as count')
-        .first();
-    } catch (dbError) {
-      console.warn('Pending orders query failed - using mock data:', dbError.message);
-      pedidosPendentes = { count: '12' };
-    }
+    // Get pending orders count
+    const pedidosPendentes = await knex('importacao_pedidos')
+      .where('status', 'pendente')
+      .count('id as count')
+      .first();
 
     const stats = {
       totalImportacoes,
@@ -154,52 +131,31 @@ router.get('/stats', async (req, res) => {
 // Get recent activities from all integration tables
 router.get('/activities', async (req, res) => {
   try {
+    const knex = getDb();
     const limit = parseInt(req.query.limit) || 10
 
-    // Get recent activities from multiple tables (with fallback)
-    let recentSales, recentOrders, recentClients, recentProducts;
-    try {
-      [recentSales, recentOrders, recentClients, recentProducts] = await Promise.all([
-        knex('importacao_vendas')
-          .select('id', 'cliente_nome', 'valor_total', 'data_venda as created_at')
-          .orderBy('data_venda', 'desc')
-          .limit(5),
-        
-        knex('importacao_pedidos')
-          .select('id', 'cliente_nome', 'status', 'valor_total', 'data_pedido as created_at')
-          .orderBy('data_pedido', 'desc')
-          .limit(5),
-        
-        knex('importacao_clientes')
-          .select('id', 'nome', 'email', 'created_at')
-          .orderBy('created_at', 'desc')
-          .limit(3),
-        
-        knex('importacao_produtos')
-          .select('id', 'nome', 'categoria', 'created_at')
-          .orderBy('created_at', 'desc')
-          .limit(3)
-      ]);
-    } catch (dbError) {
-      console.warn('Activities queries failed - using mock data:', dbError.message);
-      // Mock data for development
-      recentSales = [
-        {id: 1, cliente_nome: 'João Silva', valor_total: 1250.00, created_at: new Date()},
-        {id: 2, cliente_nome: 'Maria Santos', valor_total: 890.50, created_at: new Date(Date.now() - 86400000)}
-      ];
-      recentOrders = [
-        {id: 101, cliente_nome: 'Pedro Costa', status: 'pendente', valor_total: 450.00, created_at: new Date()},
-        {id: 102, cliente_nome: 'Ana Lima', status: 'processando', valor_total: 320.00, created_at: new Date(Date.now() - 43200000)}
-      ];
-      recentClients = [
-        {id: 1, nome: 'Carlos Oliveira', email: 'carlos@email.com', created_at: new Date()},
-        {id: 2, nome: 'Lucia Ferreira', email: 'lucia@email.com', created_at: new Date(Date.now() - 86400000)}
-      ];
-      recentProducts = [
-        {id: 1, nome: 'Notebook Dell', categoria: 'Eletrônicos', created_at: new Date()},
-        {id: 2, nome: 'Cadeira Ergonômica', categoria: 'Móveis', created_at: new Date(Date.now() - 172800000)}
-      ];
-    }
+    // Get recent activities from multiple tables
+    const [recentSales, recentOrders, recentClients, recentProducts] = await Promise.all([
+      knex('importacao_vendas')
+        .select('id', 'cliente_nome', 'valor_total', 'data_venda as created_at')
+        .orderBy('data_venda', 'desc')
+        .limit(5),
+      
+      knex('importacao_pedidos')
+        .select('id', 'cliente_nome', 'status', 'valor_total', 'data_pedido as created_at')
+        .orderBy('data_pedido', 'desc')
+        .limit(5),
+      
+      knex('importacao_clientes')
+        .select('id', 'nome', 'email', 'created_at')
+        .orderBy('created_at', 'desc')
+        .limit(3),
+      
+      knex('importacao_produtos')
+        .select('id', 'nome', 'categoria', 'created_at')
+        .orderBy('created_at', 'desc')
+        .limit(3)
+    ]);
 
     // Format activities with type and timestamp
     const activities = []
@@ -275,15 +231,11 @@ router.get('/activities', async (req, res) => {
 // Get integration status for all connected systems
 router.get('/integrations', async (req, res) => {
   try {
-    // Helper function to get record count with fallback
-    const getRecordCount = async (tableName, mockCount) => {
-      try {
-        const result = await knex(tableName).count('id as count').first();
-        return result.count;
-      } catch (dbError) {
-        console.warn(`${tableName} query failed - using mock count: ${mockCount}`);
-        return mockCount;
-      }
+    const knex = getDb();
+    // Helper function to get record count
+    const getRecordCount = async (tableName) => {
+      const result = await knex(tableName).count('id as count').first();
+      return result.count;
     };
 
     const integrations = [
@@ -291,42 +243,42 @@ router.get('/integrations', async (req, res) => {
         name: 'Mercado Livre',
         status: 'connected',
         lastSync: new Date(),
-        recordCount: await getRecordCount('importacao_integracao_ml', '345'),
+        recordCount: await getRecordCount('importacao_integracao_ml'),
         health: 'healthy'
       },
       {
         name: 'Instagram Business',
         status: 'connected', 
         lastSync: new Date(),
-        recordCount: await getRecordCount('importacao_integracao_instagram', '234'),
+        recordCount: await getRecordCount('importacao_integracao_instagram'),
         health: 'healthy'
       },
       {
         name: 'Bling ERP',
         status: 'connected',
         lastSync: new Date(),
-        recordCount: await getRecordCount('importacao_integracao_bling', '456'),
+        recordCount: await getRecordCount('importacao_integracao_bling'),
         health: 'healthy'
       },
       {
         name: 'Supabase Database',
         status: 'connected',
         lastSync: new Date(),
-        recordCount: await getRecordCount('importacao_integracao_supabase', '123'),
+        recordCount: await getRecordCount('importacao_integracao_supabase'),
         health: 'healthy'
       },
       {
         name: 'Z-API WhatsApp',
         status: 'connected',
         lastSync: new Date(),
-        recordCount: await getRecordCount('importacao_integracao_zapi', '567'),
+        recordCount: await getRecordCount('importacao_integracao_zapi'),
         health: 'healthy'
       },
       {
         name: 'Make.com Automation',
         status: 'connected',
         lastSync: new Date(),
-        recordCount: await getRecordCount('importacao_integracao_make', '78'),
+        recordCount: await getRecordCount('importacao_integracao_make'),
         health: 'healthy'
       }
     ]

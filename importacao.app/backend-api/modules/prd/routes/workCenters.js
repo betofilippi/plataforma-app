@@ -89,4 +89,54 @@ router.get('/:id/schedule',
   controller.getSchedule.bind(controller)
 );
 
+/**
+ * @route   GET /api/prd/work-centers/:id/utilization
+ * @desc    Obter utilização do centro
+ * @access  Private
+ */
+router.get('/:id/utilization', 
+  permissions.check('work_centers', 'read'),
+  controller.getUtilization.bind(controller)
+);
+
+/**
+ * @route   GET /api/prd/work-centers/:id/maintenance
+ * @desc    Obter programação de manutenção
+ * @access  Private
+ */
+router.get('/:id/maintenance', 
+  permissions.check('work_centers', 'read'),
+  controller.getMaintenanceSchedule.bind(controller)
+);
+
+/**
+ * @route   POST /api/prd/work-centers/:id/maintenance
+ * @desc    Agendar manutenção
+ * @access  Private
+ */
+router.post('/:id/maintenance', 
+  permissions.check('work_centers', 'create'),
+  controller.scheduleMaintenance.bind(controller)
+);
+
+/**
+ * @route   GET /api/prd/work-centers/:id/performance
+ * @desc    Obter métricas de performance
+ * @access  Private
+ */
+router.get('/:id/performance', 
+  permissions.check('work_centers', 'read'),
+  controller.getPerformanceMetrics.bind(controller)
+);
+
+/**
+ * @route   GET /api/prd/work-centers/:id/available-slots
+ * @desc    Obter horários disponíveis
+ * @access  Private
+ */
+router.get('/:id/available-slots', 
+  permissions.check('work_centers', 'read'),
+  controller.getAvailableSlots.bind(controller)
+);
+
 module.exports = router;

@@ -3,14 +3,17 @@ const cors = require('cors')
 const helmet = require('helmet')
 const compression = require('compression')
 const rateLimit = require('express-rate-limit')
+const http = require('http')
 require('dotenv').config()
 
 const authController = require('./auth/authController')
 const dashboardRoutes = require('./routes/dashboard')
 const cadRoutes = require('../modules/cad/routes')
 const estRoutes = require('../modules/est/routes/estoqueRoutes')
+const notificationModule = require('../modules/not')
 
 const app = express()
+const server = http.createServer(app)
 const PORT = process.env.PORT || 3001
 
 // Security middleware
@@ -65,11 +68,22 @@ app.get('/health', (req, res) => {
   })
 })
 
+// Initialize notification module
+async function initializeModules() {
+  try {
+    await notificationModule.initialize(app, server)
+    console.log('✅ Módulo de notificações inicializado')
+  } catch (error) {
+    console.error('❌ Erro ao inicializar módulo de notificações:', error)
+  }
+}
+
 // API Routes
 app.use('/auth', authController.router)
 app.use('/dashboard', dashboardRoutes)
 app.use('/api/cad', cadRoutes)
 app.use('/api/est', estRoutes)
+// Notification routes are automatically registered by the module
 
 // Default route
 app.get('/', (req, res) => {
@@ -83,7 +97,13 @@ app.get('/', (req, res) => {
       auth: '/auth/*',
       dashboard: '/dashboard/*',
       cad: '/api/cad/*',
-      est: '/api/est/*'
+      est: '/api/est/*',
+      notifications: '/api/notifications/*'
+    },
+    modules: {
+      cad: 'Cadastros',
+      est: 'Estoque',
+      not: 'Notificações'
     }
   })
 })
@@ -110,14 +130,18 @@ app.use((err, req, res, next) => {
 })
 
 // Start server
-app.listen(PORT, () => {
+server.listen(PORT, async () => {
   console.log(`🚀 Plataforma ERP Backend rodando na porta ${PORT}`)
   console.log(`📊 Dashboard API: http://localhost:${PORT}/dashboard`)
   console.log(`🔐 Auth API: http://localhost:${PORT}/auth`)
   console.log(`📋 CAD API: http://localhost:${PORT}/api/cad`)
   console.log(`📦 EST API: http://localhost:${PORT}/api/est`)
+  console.log(`🔔 Notifications API: http://localhost:${PORT}/api/notifications`)
   console.log(`❤️  Health Check: http://localhost:${PORT}/health`)
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`)
+  
+  // Initialize modules after server start
+  await initializeModules()
 })
 
 module.exports = app

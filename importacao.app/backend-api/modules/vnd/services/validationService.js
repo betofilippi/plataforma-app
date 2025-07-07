@@ -134,6 +134,74 @@ const salesReportFiltersSchema = z.object({
   forma_pagamento: z.string().optional()
 });
 
+// Customer Interaction Schema
+const customerInteractionSchema = z.object({
+  id_cliente: z.number().int().positive('ID do cliente é obrigatório'),
+  id_vendedor: z.number().int().positive('ID do vendedor é obrigatório'),
+  tipo_interacao: z.enum(['LIGACAO', 'EMAIL', 'REUNIAO', 'VISITA', 'WHATSAPP', 'PROPOSTA'], 'Tipo de interação inválido'),
+  assunto: z.string().min(1, 'Assunto é obrigatório').max(200),
+  descricao: z.string().min(1, 'Descrição é obrigatória').max(1000),
+  data_interacao: z.string().datetime('Data da interação deve ser uma data válida'),
+  duracao_minutos: z.number().int().min(0).optional(),
+  resultado: z.enum(['POSITIVO', 'NEGATIVO', 'NEUTRO', 'AGENDAMENTO']).optional(),
+  proxima_acao: z.string().max(500).optional(),
+  data_proxima_acao: z.string().datetime().optional(),
+  anexos: z.array(z.string()).optional(),
+  observacoes: z.string().max(500).optional()
+});
+
+// Customer Interaction Update Schema
+const customerInteractionUpdateSchema = z.object({
+  assunto: z.string().min(1).max(200).optional(),
+  descricao: z.string().min(1).max(1000).optional(),
+  duracao_minutos: z.number().int().min(0).optional(),
+  resultado: z.enum(['POSITIVO', 'NEGATIVO', 'NEUTRO', 'AGENDAMENTO']).optional(),
+  proxima_acao: z.string().max(500).optional(),
+  data_proxima_acao: z.string().datetime().optional(),
+  anexos: z.array(z.string()).optional(),
+  observacoes: z.string().max(500).optional()
+});
+
+// Sales Dashboard Filters Schema
+const salesDashboardFiltersSchema = z.object({
+  periodo: z.enum(['HOJE', 'SEMANA', 'MES', 'TRIMESTRE', 'ANO', 'PERSONALIZADO']).optional(),
+  data_inicial: z.string().datetime().optional(),
+  data_final: z.string().datetime().optional(),
+  id_vendedor: z.number().int().positive().optional(),
+  id_cliente: z.number().int().positive().optional(),
+  categoria_produto: z.string().optional(),
+  status: z.string().optional()
+});
+
+// Sales Forecast Schema
+const salesForecastSchema = z.object({
+  id_vendedor: z.number().int().positive('ID do vendedor é obrigatório'),
+  ano: z.number().int().min(2000).max(2100),
+  mes: z.number().int().min(1).max(12),
+  valor_previsto: z.number().min(0, 'Valor previsto deve ser maior ou igual a zero'),
+  quantidade_prevista: z.number().int().min(0, 'Quantidade prevista deve ser maior ou igual a zero'),
+  observacoes: z.string().max(500).optional()
+});
+
+// Advanced Sales Order Search Schema
+const advancedSalesOrderSearchSchema = z.object({
+  search: z.string().optional(),
+  status: z.array(z.string()).optional(),
+  data_inicial: z.string().datetime().optional(),
+  data_final: z.string().datetime().optional(),
+  id_vendedor: z.array(z.number().int().positive()).optional(),
+  id_cliente: z.array(z.number().int().positive()).optional(),
+  forma_pagamento: z.array(z.string()).optional(),
+  valor_min: z.number().min(0).optional(),
+  valor_max: z.number().min(0).optional(),
+  com_desconto: z.boolean().optional(),
+  urgente: z.boolean().optional(),
+  page: z.number().int().min(1).optional(),
+  limit: z.number().int().min(1).max(100).optional(),
+  sort: z.string().optional(),
+  order: z.enum(['asc', 'desc']).optional()
+});
+
 module.exports = {
   salesOrderSchema,
   salesOrderUpdateSchema,
@@ -143,5 +211,10 @@ module.exports = {
   salesPipelineUpdateSchema,
   commissionSchema,
   salesTargetSchema,
-  salesReportFiltersSchema
+  salesReportFiltersSchema,
+  customerInteractionSchema,
+  customerInteractionUpdateSchema,
+  salesDashboardFiltersSchema,
+  salesForecastSchema,
+  advancedSalesOrderSearchSchema
 };

@@ -1,13 +1,13 @@
-const db = require('../../../src/database/connection');
+const { getDb } = require('../../../src/database/connection');
 
 /**
- * Service layer for clients (cad_03_clientes)
+ * Service layer for clients (importacao_clientes)
  * Handles all database operations for client management
  */
 
 class ClientsService {
   constructor() {
-    this.tableName = 'cad_03_clientes';
+    this.tableName = 'importacao_clientes';
   }
 
   /**
@@ -18,27 +18,29 @@ class ClientsService {
     limit = 10,
     search = '',
     ativo = null,
-    sort = 'nome_razao_social',
+    sort = 'nome',
     order = 'asc'
   } = {}) {
     try {
       const offset = (page - 1) * limit;
       
+      const db = getDb();
       let query = db(this.tableName)
         .select([
-          'id_cliente',
+          'id',
           'tipo_pessoa',
-          'cnpj_cpf',
-          'nome_razao_social',
-          'nome_fantasia',
-          'telefone',
+          'cpf_cnpj',
+          'nome',
           'email',
+          'telefone',
+          'endereco',
           'cidade',
-          'uf',
-          'ativo',
-          'classificacao_cliente',
-          'total_compras',
+          'estado',
+          'cep',
+          'status',
           'limite_credito',
+          'saldo_devedor',
+          'data_cadastro',
           'created_at',
           'updated_at'
         ]);
@@ -46,32 +48,31 @@ class ClientsService {
       // Apply filters
       if (search) {
         query = query.where(function() {
-          this.where('nome_razao_social', 'ilike', `%${search}%`)
-              .orWhere('nome_fantasia', 'ilike', `%${search}%`)
-              .orWhere('cnpj_cpf', 'ilike', `%${search}%`)
-              .orWhere('email', 'ilike', `%${search}%`);
+          this.where('nome', 'like', `%${search}%`)
+              .orWhere('email', 'like', `%${search}%`)
+              .orWhere('cpf_cnpj', 'like', `%${search}%`);
         });
       }
 
       if (ativo !== null) {
-        query = query.where('ativo', ativo);
+        query = query.where('status', ativo ? 'ativo' : 'inativo');
       }
 
       // Get total count for pagination
       const totalQuery = query.clone();
-      const [{ count }] = await totalQuery.count('id_cliente as count');
+      const [{ count }] = await totalQuery.count('id as count');
       const total = parseInt(count);
 
       // Apply sorting and pagination
       const validSortFields = [
-        'nome_razao_social', 'cnpj_cpf', 'email', 'cidade', 
-        'total_compras', 'classificacao_cliente', 'created_at'
+        'nome', 'cpf_cnpj', 'email', 'cidade', 
+        'limite_credito', 'saldo_devedor', 'created_at'
       ];
       
       if (validSortFields.includes(sort)) {
         query = query.orderBy(sort, order);
       } else {
-        query = query.orderBy('nome_razao_social', 'asc');
+        query = query.orderBy('nome', 'asc');
       }
 
       const clients = await query.limit(limit).offset(offset);
@@ -98,8 +99,9 @@ class ClientsService {
    */
   async getClientById(id) {
     try {
+      const db = getDb();
       const client = await db(this.tableName)
-        .where('id_cliente', id)
+        .where('id', id)
         .first();
 
       if (!client) {
@@ -118,22 +120,35 @@ class ClientsService {
    */
   async createClient(clientData) {
     try {
+      const db = getDb();
+      
       // Check if CNPJ/CPF already exists
-      const existingClient = await db(this.tableName)
-        .where('cnpj_cpf', clientData.cnpj_cpf)
-        .first();
+      if (clientData.cpf_cnpj) {
+        const existingClient = await db(this.tableName)
+          .where('cpf_cnpj', clientData.cpf_cnpj)
+          .first();
 
-      if (existingClient) {
-        throw new Error('Já existe um cliente com este CPF/CNPJ');
+        if (existingClient) {
+          throw new Error('Já existe um cliente com este CPF/CNPJ');
+        }
       }
 
-      const [newClient] = await db(this.tableName)
+      // SQLite doesn't support returning clause the same way, so we do insert and then fetch
+      const [newClientId] = await db(this.tableName)
         .insert({
           ...clientData,
-          created_at: new Date(),
-          updated_at: new Date()
-        })
-        .returning('*');
+          status: clientData.status || 'ativo',
+          limite_credito: clientData.limite_credito || 0,
+          saldo_devedor: clientData.saldo_devedor || 0,
+          data_cadastro: new Date().toISOString().split('T')[0],
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        });
+
+      // Fetch the created client
+      const newClient = await db(this.tableName)
+        .where('id', newClientId)
+        .first();
 
       return newClient;
     } catch (error) {
@@ -150,33 +165,35 @@ class ClientsService {
    */
   async updateClient(id, clientData) {
     try {
+      const db = getDb();
+      
       // Check if client exists
       const existingClient = await this.getClientById(id);
 
-      // Check if CNPJ/CPF is being changed and if it's already in use
-      if (clientData.cnpj_cpf && clientData.cnpj_cpf !== existingClient.cnpj_cpf) {
+      // Check if CNPJ/CPF is being changed and already exists
+      if (clientData.cpf_cnpj && clientData.cpf_cnpj !== existingClient.cpf_cnpj) {
         const duplicateClient = await db(this.tableName)
-          .where('cnpj_cpf', clientData.cnpj_cpf)
-          .where('id_cliente', '!=', id)
+          .where('cpf_cnpj', clientData.cpf_cnpj)
+          .whereNot('id', id)
           .first();
 
         if (duplicateClient) {
-          throw new Error('Já existe outro cliente com este CPF/CNPJ');
+          throw new Error('Já existe um cliente com este CPF/CNPJ');
         }
       }
 
-      const [updatedClient] = await db(this.tableName)
-        .where('id_cliente', id)
+      await db(this.tableName)
+        .where('id', id)
         .update({
           ...clientData,
-          updated_at: new Date()
-        })
-        .returning('*');
+          updated_at: new Date().toISOString()
+        });
 
-      return updatedClient;
+      // Return updated client
+      return await this.getClientById(id);
     } catch (error) {
       console.error('Error updating client:', error);
-      if (error.message.includes('Já existe') || error.message.includes('não encontrado')) {
+      if (error.message.includes('não encontrado') || error.message.includes('Já existe')) {
         throw error;
       }
       throw new Error('Erro ao atualizar cliente: ' + error.message);
@@ -184,36 +201,41 @@ class ClientsService {
   }
 
   /**
-   * Delete client (soft delete)
+   * Delete client
    */
   async deleteClient(id) {
     try {
+      const db = getDb();
+      
       // Check if client exists
       await this.getClientById(id);
 
-      // Check if client has active sales/orders
-      const hasSales = await db('vnd_05_vendas')
-        .where('id_cliente', id)
-        .where('ativo', true)
+      // Check if client has associated sales or orders
+      const hasSales = await db('importacao_vendas')
+        .where('cliente_id', id)
         .first();
 
-      if (hasSales) {
-        // Soft delete only
+      const hasOrders = await db('importacao_pedidos')
+        .where('cliente_id', id)
+        .first();
+
+      if (hasSales || hasOrders) {
+        // Soft delete - just mark as inactive
         await db(this.tableName)
-          .where('id_cliente', id)
-          .update({
-            ativo: false,
-            updated_at: new Date()
+          .where('id', id)
+          .update({ 
+            status: 'inativo',
+            updated_at: new Date().toISOString()
           });
-
-        return { message: 'Cliente desativado com sucesso (possui vendas associadas)' };
+        
+        return { soft_deleted: true };
       } else {
-        // Can be completely removed
+        // Hard delete if no dependencies
         await db(this.tableName)
-          .where('id_cliente', id)
+          .where('id', id)
           .del();
-
-        return { message: 'Cliente removido com sucesso' };
+        
+        return { hard_deleted: true };
       }
     } catch (error) {
       console.error('Error deleting client:', error);
@@ -225,175 +247,131 @@ class ClientsService {
   }
 
   /**
+   * Toggle client status
+   */
+  async toggleClientStatus(id) {
+    try {
+      const db = getDb();
+      const client = await this.getClientById(id);
+      
+      const newStatus = client.status === 'ativo' ? 'inativo' : 'ativo';
+      
+      await db(this.tableName)
+        .where('id', id)
+        .update({ 
+          status: newStatus,
+          updated_at: new Date().toISOString()
+        });
+
+      return await this.getClientById(id);
+    } catch (error) {
+      console.error('Error toggling client status:', error);
+      throw new Error('Erro ao alterar status do cliente: ' + error.message);
+    }
+  }
+
+  /**
    * Get client statistics
    */
   async getClientStats() {
     try {
-      const stats = await db(this.tableName)
-        .select([
-          db.raw('COUNT(*) as total'),
-          db.raw('COUNT(*) FILTER (WHERE ativo = true) as ativos'),
-          db.raw('COUNT(*) FILTER (WHERE ativo = false) as inativos'),
-          db.raw('COUNT(*) FILTER (WHERE tipo_pessoa = \'F\') as pessoas_fisicas'),
-          db.raw('COUNT(*) FILTER (WHERE tipo_pessoa = \'J\') as pessoas_juridicas'),
-          db.raw('AVG(total_compras) as ticket_medio'),
-          db.raw('SUM(total_compras) as total_vendas')
-        ])
-        .first();
-
-      // Get top clients by purchase amount
-      const topClients = await db(this.tableName)
-        .select(['nome_razao_social', 'total_compras', 'classificacao_cliente'])
-        .where('ativo', true)
-        .orderBy('total_compras', 'desc')
-        .limit(5);
-
-      // Get clients by classification
-      const byClassification = await db(this.tableName)
-        .select('classificacao_cliente')
-        .count('id_cliente as count')
-        .where('ativo', true)
-        .groupBy('classificacao_cliente');
+      const db = getDb();
+      
+      const [
+        totalClients,
+        activeClients,
+        inactiveClients,
+        totalCreditLimit,
+        totalDebt
+      ] = await Promise.all([
+        db(this.tableName).count('id as count').first(),
+        db(this.tableName).where('status', 'ativo').count('id as count').first(),
+        db(this.tableName).where('status', 'inativo').count('id as count').first(),
+        db(this.tableName).sum('limite_credito as total').first(),
+        db(this.tableName).sum('saldo_devedor as total').first()
+      ]);
 
       return {
-        ...stats,
-        topClients,
-        byClassification: byClassification.reduce((acc, item) => {
-          acc[item.classificacao_cliente] = parseInt(item.count);
-          return acc;
-        }, {})
+        total: parseInt(totalClients.count) || 0,
+        ativo: parseInt(activeClients.count) || 0,
+        inativo: parseInt(inactiveClients.count) || 0,
+        limite_credito_total: parseFloat(totalCreditLimit.total) || 0,
+        saldo_devedor_total: parseFloat(totalDebt.total) || 0
       };
     } catch (error) {
-      console.error('Error fetching client stats:', error);
-      throw new Error('Erro ao buscar estatísticas: ' + error.message);
+      console.error('Error getting client stats:', error);
+      throw new Error('Erro ao buscar estatísticas de clientes: ' + error.message);
     }
   }
 
   /**
-   * Search clients with advanced filters
+   * Get clients for dropdown/select
    */
-  async searchClients({
-    termo = '',
-    tipo_pessoa = null,
-    classificacao = null,
-    cidade = '',
-    uf = '',
-    ativo = null,
-    limite_credito_min = null,
-    limite_credito_max = null
-  } = {}) {
+  async getClientsForSelect(activeOnly = true) {
     try {
+      const db = getDb();
       let query = db(this.tableName)
-        .select([
-          'id_cliente',
-          'tipo_pessoa',
-          'cnpj_cpf',
-          'nome_razao_social',
-          'nome_fantasia',
-          'telefone',
-          'email',
-          'endereco',
-          'cidade',
-          'uf',
-          'classificacao_cliente',
-          'total_compras',
-          'limite_credito',
-          'ativo'
-        ]);
+        .select('id', 'nome', 'cpf_cnpj', 'email')
+        .orderBy('nome', 'asc');
 
-      if (termo) {
-        query = query.where(function() {
-          this.where('nome_razao_social', 'ilike', `%${termo}%`)
-              .orWhere('nome_fantasia', 'ilike', `%${termo}%`)
-              .orWhere('cnpj_cpf', 'ilike', `%${termo}%`)
-              .orWhere('email', 'ilike', `%${termo}%`);
-        });
+      if (activeOnly) {
+        query = query.where('status', 'ativo');
       }
 
-      if (tipo_pessoa) {
-        query = query.where('tipo_pessoa', tipo_pessoa);
-      }
-
-      if (classificacao) {
-        query = query.where('classificacao_cliente', classificacao);
-      }
-
-      if (cidade) {
-        query = query.where('cidade', 'ilike', `%${cidade}%`);
-      }
-
-      if (uf) {
-        query = query.where('uf', uf);
-      }
-
-      if (ativo !== null) {
-        query = query.where('ativo', ativo);
-      }
-
-      if (limite_credito_min !== null) {
-        query = query.where('limite_credito', '>=', limite_credito_min);
-      }
-
-      if (limite_credito_max !== null) {
-        query = query.where('limite_credito', '<=', limite_credito_max);
-      }
-
-      const clients = await query
-        .orderBy('nome_razao_social', 'asc')
-        .limit(50); // Limit advanced search results
-
-      return clients;
+      return await query;
     } catch (error) {
-      console.error('Error in advanced client search:', error);
-      throw new Error('Erro na busca avançada: ' + error.message);
+      console.error('Error getting clients for select:', error);
+      throw new Error('Erro ao buscar clientes para seleção: ' + error.message);
     }
   }
 
   /**
-   * Update client purchase history
+   * Search clients
    */
-  async updateClientPurchaseHistory(clientId, purchaseData) {
+  async searchClients(searchTerm) {
     try {
-      const client = await this.getClientById(clientId);
-      
-      // Get current history or initialize
-      let historico = client.historico_compras || [];
-      
-      // Add new purchase to history
-      historico.push({
-        ...purchaseData,
-        data_compra: new Date().toISOString()
-      });
+      const db = getDb();
+      return await db(this.tableName)
+        .select('id', 'nome', 'cpf_cnpj', 'email', 'telefone', 'cidade')
+        .where('status', 'ativo')
+        .where(function() {
+          this.where('nome', 'like', `%${searchTerm}%`)
+              .orWhere('cpf_cnpj', 'like', `%${searchTerm}%`)
+              .orWhere('email', 'like', `%${searchTerm}%`);
+        })
+        .orderBy('nome', 'asc')
+        .limit(20);
+    } catch (error) {
+      console.error('Error searching clients:', error);
+      throw new Error('Erro ao pesquisar clientes: ' + error.message);
+    }
+  }
 
-      // Update totals and classification
-      const novoTotal = client.total_compras + purchaseData.valor;
-      let novaClassificacao = client.classificacao_cliente;
-
-      // Auto-classify based on total purchases
-      if (novoTotal >= 100000) {
-        novaClassificacao = 'DIAMANTE';
-      } else if (novoTotal >= 50000) {
-        novaClassificacao = 'OURO';
-      } else if (novoTotal >= 20000) {
-        novaClassificacao = 'PRATA';
-      } else if (novoTotal >= 5000) {
-        novaClassificacao = 'BRONZE';
+  /**
+   * Update purchase history
+   */
+  async updatePurchaseHistory(id, purchaseData) {
+    try {
+      const db = getDb();
+      const client = await this.getClientById(id);
+      
+      // This would typically update purchase statistics
+      // For now, we'll just update the debt balance if provided
+      if (purchaseData.valor_compra) {
+        const newDebt = (parseFloat(client.saldo_devedor) || 0) + parseFloat(purchaseData.valor_compra);
+        
+        await db(this.tableName)
+          .where('id', id)
+          .update({ 
+            saldo_devedor: newDebt,
+            updated_at: new Date().toISOString()
+          });
       }
 
-      await db(this.tableName)
-        .where('id_cliente', clientId)
-        .update({
-          historico_compras: JSON.stringify(historico),
-          total_compras: novoTotal,
-          classificacao_cliente: novaClassificacao,
-          ultima_compra: new Date(),
-          updated_at: new Date()
-        });
-
-      return { message: 'Histórico de compras atualizado com sucesso' };
+      return await this.getClientById(id);
     } catch (error) {
       console.error('Error updating purchase history:', error);
-      throw new Error('Erro ao atualizar histórico: ' + error.message);
+      throw new Error('Erro ao atualizar histórico de compras: ' + error.message);
     }
   }
 }

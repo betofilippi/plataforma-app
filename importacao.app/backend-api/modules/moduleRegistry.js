@@ -6,6 +6,7 @@
 const express = require('express');
 
 // Import module routes
+const biRoutes = require('./bi/routes');
 const cadRoutes = require('./cad/routes');
 const cmpRoutes = require('./cmp/routes');
 const estRoutes = require('./est/routes/estoqueRoutes');
@@ -31,6 +32,24 @@ const whkRoutes = require('./whk/routes');
  * - status: active, inactive, maintenance
  */
 const modules = {
+  bi: {
+    name: 'Business Intelligence',
+    code: 'BI',
+    version: '1.0.0',
+    description: 'Módulo de Business Intelligence - dashboards, relatórios e analytics',
+    routes: biRoutes,
+    dependencies: ['cad', 'vnd', 'est', 'prd'],
+    status: 'active',
+    endpoints: [
+      '/api/bi/dashboards/executive',
+      '/api/bi/dashboards/sales',
+      '/api/bi/dashboards/inventory',
+      '/api/bi/dashboards/financial',
+      '/api/bi/reports',
+      '/api/bi/analytics'
+    ]
+  },
+
   cad: {
     name: 'Cadastros',
     code: 'CAD',
