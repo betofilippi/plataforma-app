@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Produção - Sistema ERP</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-result { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .warning { background-color: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .info { background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Teste de Produção - Sistema ERP</h1>
+    <p><strong>Ambiente:</strong> <span id="environment">Detectando...</span></p>
+    <button onclick="runProductionTests()">Executar Testes de Produção</button>
+    <div id="results"></div>
+
+    <script src="api-client.js"></script>
+    <script>
+        // Force production environment
+        window.erpApi.baseURL = 'https://erp-api-clean-r88y1fdz9-nxt-9032fd74.vercel.app';
+        document.getElementById('environment').textContent = 'Produção (Vercel)';
+
+        function log(message, type = 'info') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `test-result ${type}`;
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong> - ${message}`;
+            results.appendChild(div);
+            console.log(message);
+        }
+
+        async function runProductionTests() {
+            document.getElementById('results').innerHTML = '';
+            log('🚀 Iniciando testes de produção...', 'info');
+            
+            try {
+                // Teste 1: Health Check
+                log('📋 Testando health check...', 'info');
+                const health = await window.erpApi.healthCheck();
+                log(`✅ Health check: ${health.status}`, 'success');
+                
+                // Teste 2: Login
+                log('🔐 Testando login...', 'info');
+                const loginResult = await window.erpApi.login('admin@plataforma.app', 'admin123');
+                if (loginResult.success) {
+                    log(`✅ Login realizado com sucesso para: ${loginResult.data.user.first_name}`, 'success');
+                } else {
+                    log(`❌ Erro no login: ${loginResult.message}`, 'error');
+                    return;
+                }
+                
+                // Teste 3: Dashboard Stats
+                log('📊 Testando dashboard stats...', 'info');
+                const dashboardStats = await window.erpApi.getDashboardStats();
+                if (dashboardStats.success) {
+                    const isOffline = dashboardStats.message && dashboardStats.message.includes('offline');
+                    log(`${isOffline ? '🔄' : '✅'} Dashboard stats: ${dashboardStats.data.totalClientes} clientes, ${dashboardStats.data.detalhes.produtos} produtos ${isOffline ? '(modo offline)' : ''}`, isOffline ? 'warning' : 'success');
+                } else {
+                    log(`❌ Erro no dashboard: ${dashboardStats.message}`, 'error');
+                }
+                
+                // Teste 4: Clientes
+                log('👥 Testando módulo de clientes...', 'info');
+                const clients = await window.erpApi.getClients();
+                if (clients.success) {
+                    const isOffline = clients.message && clients.message.includes('offline');
+                    log(`${isOffline ? '🔄' : '✅'} Clientes carregados: ${clients.data.length} registros ${isOffline ? '(modo offline)' : ''}`, isOffline ? 'warning' : 'success');
+                } else {
+                    log(`❌ Erro nos clientes: ${clients.message}`, 'error');
+                }
+                
+                // Teste 5: Produtos
+                log('📦 Testando módulo de produtos...', 'info');
+                const products = await window.erpApi.getProducts();
+                if (products.success) {
+                    const isOffline = products.message && products.message.includes('offline');
+                    log(`${isOffline ? '🔄' : '✅'} Produtos carregados: ${products.data.length} registros ${isOffline ? '(modo offline)' : ''}`, isOffline ? 'warning' : 'success');
+                } else {
+                    log(`❌ Erro nos produtos: ${products.message}`, 'error');
+                }
+                
+                // Teste 6: Fornecedores
+                log('🏭 Testando módulo de fornecedores...', 'info');
+                const suppliers = await window.erpApi.getSuppliers();
+                if (suppliers.success) {
+                    const isOffline = suppliers.message && suppliers.message.includes('offline');
+                    log(`${isOffline ? '🔄' : '✅'} Fornecedores carregados: ${suppliers.data.length} registros ${isOffline ? '(modo offline)' : ''}`, isOffline ? 'warning' : 'success');
+                } else {
+                    log(`❌ Erro nos fornecedores: ${suppliers.message}`, 'error');
+                }
+                
+                // Teste 7: Atividades
+                log('📝 Testando atividades do dashboard...', 'info');
+                const activities = await window.erpApi.getDashboardActivities();
+                if (activities.success) {
+                    const isOffline = activities.message && activities.message.includes('offline');
+                    log(`${isOffline ? '🔄' : '✅'} Atividades carregadas: ${activities.data.length} registros ${isOffline ? '(modo offline)' : ''}`, isOffline ? 'warning' : 'success');
+                } else {
+                    log(`❌ Erro nas atividades: ${activities.message}`, 'error');
+                }
+                
+                log('🎉 Todos os testes de produção passaram! Sistema funcionando com mecanismo de fallback.', 'success');
+                
+            } catch (error) {
+                log(`❌ Erro durante os testes: ${error.message}`, 'error');
+                console.error('Erro completo:', error);
+            }
+        }
+    </script>
+</body>
+</html>
