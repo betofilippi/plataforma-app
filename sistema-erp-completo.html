@@ -801,21 +801,76 @@
         }
 
         function updateRecentActivities(activities) {
-            const container = document.getElementById('recentActivity');
-            container.innerHTML = activities.map(activity => `
-                <div class="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
-                    <div class="flex-shrink-0">
-                        <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                            <i class="fas fa-${getActivityIcon(activity.type)} text-white text-sm"></i>
+            try {
+                console.log('🔍 updateRecentActivities called with:', activities);
+                
+                const container = document.getElementById('recentActivity');
+                if (!container) {
+                    console.error('❌ recentActivity container not found');
+                    return;
+                }
+                
+                if (!activities || !Array.isArray(activities)) {
+                    console.error('❌ Invalid activities data:', activities);
+                    container.innerHTML = '<p class="text-gray-500">Nenhuma atividade recente encontrada.</p>';
+                    return;
+                }
+                
+                console.log(`📋 Processing ${activities.length} activities`);
+                
+                container.innerHTML = activities.map(activity => {
+                    const title = activity.title || activity.action || 'Atividade';
+                    const description = activity.description || '';
+                    const time = activity.timestamp ? formatTime(activity.timestamp) : (activity.time || '');
+                    const type = activity.type || 'default';
+                    
+                    return `
+                        <div class="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
+                            <div class="flex-shrink-0">
+                                <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-${getActivityIcon(type)} text-white text-sm"></i>
+                                </div>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm font-medium text-gray-900">${title}</p>
+                                <p class="text-sm text-gray-500">${description}</p>
+                            </div>
+                            <div class="text-xs text-gray-400">${time}</div>
                         </div>
-                    </div>
-                    <div class="flex-1">
-                        <p class="text-sm font-medium text-gray-900">${activity.action}</p>
-                        <p class="text-sm text-gray-500">${activity.description}</p>
-                    </div>
-                    <div class="text-xs text-gray-400">${activity.time}</div>
-                </div>
-            `).join('');
+                    `;
+                }).join('');
+                
+                console.log('✅ Recent activities updated successfully');
+                
+            } catch (error) {
+                console.error('❌ Error in updateRecentActivities:', error);
+                const container = document.getElementById('recentActivity');
+                if (container) {
+                    container.innerHTML = '<p class="text-red-500">Erro ao carregar atividades recentes.</p>';
+                }
+            }
+        }
+
+        function formatTime(timestamp) {
+            try {
+                const date = new Date(timestamp);
+                const now = new Date();
+                const diffInMinutes = Math.floor((now - date) / 60000);
+                
+                if (diffInMinutes < 1) return 'Agora';
+                if (diffInMinutes < 60) return `${diffInMinutes}m atrás`;
+                
+                const diffInHours = Math.floor(diffInMinutes / 60);
+                if (diffInHours < 24) return `${diffInHours}h atrás`;
+                
+                const diffInDays = Math.floor(diffInHours / 24);
+                if (diffInDays < 7) return `${diffInDays}d atrás`;
+                
+                return date.toLocaleDateString('pt-BR');
+            } catch (error) {
+                console.error('Error formatting time:', error);
+                return 'Data inválida';
+            }
         }
 
         function getActivityIcon(type) {
@@ -1129,14 +1184,26 @@
 
         // Loading and error handling functions
         function showLoading(elementId) {
-            const element = document.getElementById(elementId);
-            if (element) {
+            try {
+                console.log(`🔍 showLoading called for elementId: ${elementId}`);
+                
+                const element = document.getElementById(elementId);
+                if (!element) {
+                    console.error(`❌ Element ${elementId} not found for showLoading`);
+                    return;
+                }
+                
+                console.log(`✅ Element ${elementId} found, showing loading`);
                 element.innerHTML = `
                     <div class="flex items-center justify-center p-8">
                         <div class="loading inline-block w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full mr-3"></div>
                         <span class="text-gray-600">Carregando...</span>
                     </div>
                 `;
+                console.log(`✅ Loading displayed successfully in ${elementId}`);
+                
+            } catch (error) {
+                console.error('❌ Error in showLoading function:', error);
             }
         }
         
@@ -1145,8 +1212,18 @@
         }
         
         function showError(elementId, message) {
-            const element = document.getElementById(elementId);
-            if (element) {
+            try {
+                console.log(`🔍 showError called for elementId: ${elementId}, message: ${message}`);
+                
+                const element = document.getElementById(elementId);
+                if (!element) {
+                    console.error(`❌ Element ${elementId} not found for showError`);
+                    // Fallback to show error in console if element not found
+                    console.error(`Error message was: ${message}`);
+                    return;
+                }
+                
+                console.log(`✅ Element ${elementId} found, showing error`);
                 element.innerHTML = `
                     <div class="flex items-center justify-center p-8">
                         <div class="text-center">
@@ -1158,6 +1235,10 @@
                         </div>
                     </div>
                 `;
+                console.log(`✅ Error displayed successfully in ${elementId}`);
+                
+            } catch (error) {
+                console.error('❌ Error in showError function:', error);
             }
         }
         
