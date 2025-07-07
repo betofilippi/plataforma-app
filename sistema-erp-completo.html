@@ -98,25 +98,25 @@
                         <i class="fas fa-shopping-cart mr-3"></i>VND - Vendas
                     </a>
                     <a href="#cmp" class="sidebar-item block px-4 py-3 rounded-lg text-sm font-medium">
-                        <i class="fas fa-shopping-basket mr-3"></i>CMP - Compras
-                    </a>
-                    <a href="#est" class="sidebar-item block px-4 py-3 rounded-lg text-sm font-medium">
-                        <i class="fas fa-boxes mr-3"></i>EST - Estoque
+                        <i class="fas fa-shopping-bag mr-3"></i>CMP - Compras
                     </a>
                     <a href="#fis" class="sidebar-item block px-4 py-3 rounded-lg text-sm font-medium">
                         <i class="fas fa-file-invoice mr-3"></i>FIS - Fiscal
                     </a>
+                    <a href="#est" class="sidebar-item block px-4 py-3 rounded-lg text-sm font-medium">
+                        <i class="fas fa-boxes mr-3"></i>EST - Estoque
+                    </a>
                     <a href="#imp" class="sidebar-item block px-4 py-3 rounded-lg text-sm font-medium">
                         <i class="fas fa-ship mr-3"></i>IMP - Importação
                     </a>
-                    <a href="#prd" class="sidebar-item block px-4 py-3 rounded-lg text-sm font-medium">
-                        <i class="fas fa-industry mr-3"></i>PRD - Produção
+                    <a href="#loc" class="sidebar-item block px-4 py-3 rounded-lg text-sm font-medium">
+                        <i class="fas fa-map-marker-alt mr-3"></i>LOC - Localização
                     </a>
                     <a href="#log" class="sidebar-item block px-4 py-3 rounded-lg text-sm font-medium">
                         <i class="fas fa-truck mr-3"></i>LOG - Logística
                     </a>
-                    <a href="#loc" class="sidebar-item block px-4 py-3 rounded-lg text-sm font-medium">
-                        <i class="fas fa-map-marker-alt mr-3"></i>LOC - Locação
+                    <a href="#prd" class="sidebar-item block px-4 py-3 rounded-lg text-sm font-medium">
+                        <i class="fas fa-industry mr-3"></i>PRD - Produção
                     </a>
                     <a href="#pro" class="sidebar-item block px-4 py-3 rounded-lg text-sm font-medium">
                         <i class="fas fa-project-diagram mr-3"></i>PRO - Projetos
@@ -132,1320 +132,717 @@
         </aside>
 
         <!-- Main Content -->
-        <main class="flex-1 content-area">
+        <main class="flex-1 lg:ml-0 content-area">
             <!-- Dashboard Section -->
-            <div id="dashboard-section" class="form-section active p-6">
-                <div class="mb-6">
-                    <h2 class="text-3xl font-bold text-gray-900 mb-2">Dashboard</h2>
-                    <p class="text-gray-600">Visão geral do sistema ERP</p>
+            <section id="dashboard" class="p-6 section active">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-900">Dashboard</h2>
+                    <button id="refreshDashboard" class="flex items-center space-x-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
+                        <i class="fas fa-sync-alt"></i>
+                        <span>Atualizar</span>
+                    </button>
                 </div>
 
                 <!-- Stats Cards -->
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    <div class="bg-white p-6 rounded-xl shadow-sm border">
+                    <div class="bg-white rounded-lg shadow-sm p-6">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-sm font-medium text-gray-600">Clientes</p>
-                                <p class="text-2xl font-bold text-blue-600" id="clientsCount">0</p>
+                                <p class="text-sm font-medium text-gray-500">Clientes</p>
+                                <p class="text-2xl font-bold text-gray-900" id="clientsCount">0</p>
                             </div>
-                            <div class="p-3 bg-blue-50 rounded-lg">
+                            <div class="bg-blue-100 rounded-full p-3">
                                 <i class="fas fa-users text-blue-600"></i>
                             </div>
                         </div>
                     </div>
-                    <div class="bg-white p-6 rounded-xl shadow-sm border">
+                    <div class="bg-white rounded-lg shadow-sm p-6">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-sm font-medium text-gray-600">Produtos</p>
-                                <p class="text-2xl font-bold text-green-600" id="productsCount">0</p>
+                                <p class="text-sm font-medium text-gray-500">Produtos</p>
+                                <p class="text-2xl font-bold text-gray-900" id="productsCount">0</p>
                             </div>
-                            <div class="p-3 bg-green-50 rounded-lg">
+                            <div class="bg-green-100 rounded-full p-3">
                                 <i class="fas fa-box text-green-600"></i>
                             </div>
                         </div>
                     </div>
-                    <div class="bg-white p-6 rounded-xl shadow-sm border">
+                    <div class="bg-white rounded-lg shadow-sm p-6">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-sm font-medium text-gray-600">Vendas</p>
-                                <p class="text-2xl font-bold text-purple-600" id="salesCount">0</p>
+                                <p class="text-sm font-medium text-gray-500">Vendas</p>
+                                <p class="text-2xl font-bold text-gray-900" id="salesCount">0</p>
                             </div>
-                            <div class="p-3 bg-purple-50 rounded-lg">
-                                <i class="fas fa-chart-line text-purple-600"></i>
+                            <div class="bg-purple-100 rounded-full p-3">
+                                <i class="fas fa-shopping-cart text-purple-600"></i>
                             </div>
                         </div>
                     </div>
-                    <div class="bg-white p-6 rounded-xl shadow-sm border">
+                    <div class="bg-white rounded-lg shadow-sm p-6">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-sm font-medium text-gray-600">Faturamento</p>
-                                <p class="text-2xl font-bold text-orange-600" id="revenueCount">R$ 0</p>
+                                <p class="text-sm font-medium text-gray-500">Faturamento</p>
+                                <p class="text-2xl font-bold text-gray-900" id="revenueCount">R$ 0</p>
                             </div>
-                            <div class="p-3 bg-orange-50 rounded-lg">
-                                <i class="fas fa-dollar-sign text-orange-600"></i>
+                            <div class="bg-yellow-100 rounded-full p-3">
+                                <i class="fas fa-dollar-sign text-yellow-600"></i>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Charts -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                    <div class="bg-white p-6 rounded-xl shadow-sm border">
-                        <h3 class="text-lg font-semibold mb-4">Vendas Mensais</h3>
+                <!-- Charts and Activities -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white rounded-lg shadow-sm p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Vendas por Mês</h3>
                         <div class="chart-container">
                             <canvas id="salesChart"></canvas>
                         </div>
                     </div>
-                    <div class="bg-white p-6 rounded-xl shadow-sm border">
-                        <h3 class="text-lg font-semibold mb-4">Produtos por Categoria</h3>
-                        <div class="chart-container">
-                            <canvas id="productsChart"></canvas>
+                    <div class="bg-white rounded-lg shadow-sm p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Atividades Recentes</h3>
+                        <div id="recentActivities" class="space-y-4">
+                            <!-- Activities will be loaded here -->
                         </div>
                     </div>
                 </div>
-
-                <!-- Recent Activity -->
-                <div class="bg-white p-6 rounded-xl shadow-sm border">
-                    <h3 class="text-lg font-semibold mb-4">Atividades Recentes</h3>
-                    <div id="recentActivity" class="space-y-4">
-                        <!-- Activities will be loaded here -->
-                    </div>
-                </div>
-            </div>
+            </section>
 
             <!-- CAD Section -->
-            <div id="cad-section" class="form-section p-6">
-                <div class="mb-6">
-                    <h2 class="text-3xl font-bold text-gray-900 mb-2">CAD - Cadastros</h2>
-                    <p class="text-gray-600">Gestão de clientes, produtos e fornecedores</p>
+            <section id="cad" class="p-6 section hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-900">CAD - Cadastros</h2>
                 </div>
 
                 <!-- Sub-navigation -->
-                <div class="bg-white p-4 rounded-xl shadow-sm border mb-6">
-                    <div class="flex space-x-4">
-                        <button id="cadClientsBtn" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
-                            <i class="fas fa-users mr-2"></i>Clientes
-                        </button>
-                        <button id="cadProductsBtn" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">
-                            <i class="fas fa-box mr-2"></i>Produtos
-                        </button>
-                        <button id="cadSuppliersBtn" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">
-                            <i class="fas fa-truck mr-2"></i>Fornecedores
-                        </button>
+                <div class="bg-white rounded-lg shadow-sm mb-6">
+                    <div class="border-b">
+                        <nav class="flex space-x-8 px-6">
+                            <button class="cad-tab active py-4 px-1 border-b-2 border-blue-500 text-blue-600 font-medium text-sm" data-tab="clients">
+                                <i class="fas fa-users mr-2"></i>Clientes
+                            </button>
+                            <button class="cad-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm" data-tab="products">
+                                <i class="fas fa-box mr-2"></i>Produtos
+                            </button>
+                            <button class="cad-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm" data-tab="suppliers">
+                                <i class="fas fa-truck mr-2"></i>Fornecedores
+                            </button>
+                        </nav>
                     </div>
                 </div>
 
-                <!-- Clients Management -->
-                <div id="cadClientsContent" class="cad-content active">
-                    <div class="bg-white p-6 rounded-xl shadow-sm border">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-xl font-semibold">Clientes</h3>
-                            <button id="addClientBtn" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
+                <!-- Clients Tab -->
+                <div id="clients-tab" class="cad-content active">
+                    <div class="bg-white rounded-lg shadow-sm">
+                        <div class="flex justify-between items-center p-6 border-b">
+                            <h3 class="text-lg font-semibold text-gray-900">Clientes</h3>
+                            <button id="addClient" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
                                 <i class="fas fa-plus mr-2"></i>Novo Cliente
                             </button>
                         </div>
-                        <div class="data-table">
-                            <table id="clientsTable" class="w-full">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Telefone</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="clientsTableBody" class="bg-white divide-y divide-gray-200">
-                                    <!-- Client rows will be loaded here -->
-                                </tbody>
-                            </table>
+                        <div class="p-6">
+                            <div class="data-table">
+                                <table class="w-full">
+                                    <thead>
+                                        <tr class="bg-gray-50">
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Telefone</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="clientsTableBody">
+                                        <!-- Clients will be loaded here -->
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Products Management -->
-                <div id="cadProductsContent" class="cad-content">
-                    <div class="bg-white p-6 rounded-xl shadow-sm border">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-xl font-semibold">Produtos</h3>
-                            <button id="addProductBtn" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600">
+                <!-- Products Tab -->
+                <div id="products-tab" class="cad-content hidden">
+                    <div class="bg-white rounded-lg shadow-sm">
+                        <div class="flex justify-between items-center p-6 border-b">
+                            <h3 class="text-lg font-semibold text-gray-900">Produtos</h3>
+                            <button id="addProduct" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
                                 <i class="fas fa-plus mr-2"></i>Novo Produto
                             </button>
                         </div>
-                        <div class="data-table">
-                            <table id="productsTable" class="w-full">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Código</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descrição</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoria</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Preço</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estoque</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="productsTableBody" class="bg-white divide-y divide-gray-200">
-                                    <!-- Product rows will be loaded here -->
-                                </tbody>
-                            </table>
+                        <div class="p-6">
+                            <div class="data-table">
+                                <table class="w-full">
+                                    <thead>
+                                        <tr class="bg-gray-50">
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Código</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descrição</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoria</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Preço</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estoque</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="productsTableBody">
+                                        <!-- Products will be loaded here -->
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Suppliers Management -->
-                <div id="cadSuppliersContent" class="cad-content">
-                    <div class="bg-white p-6 rounded-xl shadow-sm border">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-xl font-semibold">Fornecedores</h3>
-                            <button id="addSupplierBtn" class="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600">
+                <!-- Suppliers Tab -->
+                <div id="suppliers-tab" class="cad-content hidden">
+                    <div class="bg-white rounded-lg shadow-sm">
+                        <div class="flex justify-between items-center p-6 border-b">
+                            <h3 class="text-lg font-semibold text-gray-900">Fornecedores</h3>
+                            <button id="addSupplier" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
                                 <i class="fas fa-plus mr-2"></i>Novo Fornecedor
                             </button>
                         </div>
-                        <div class="data-table">
-                            <table id="suppliersTable" class="w-full">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">CNPJ</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contato</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="suppliersTableBody" class="bg-white divide-y divide-gray-200">
-                                    <!-- Supplier rows will be loaded here -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- VND Section -->
-            <div id="vnd-section" class="form-section p-6">
-                <div class="mb-6">
-                    <h2 class="text-3xl font-bold text-gray-900 mb-2">VND - Vendas</h2>
-                    <p class="text-gray-600">Gestão de vendas, pedidos e CRM</p>
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <!-- Sales Pipeline -->
-                    <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border">
-                        <h3 class="text-xl font-semibold mb-4">Pipeline de Vendas</h3>
-                        <div id="salesPipeline" class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <div class="bg-blue-50 p-4 rounded-lg">
-                                <h4 class="font-medium text-blue-900">Leads</h4>
-                                <p class="text-2xl font-bold text-blue-600" id="leadsCount">0</p>
-                            </div>
-                            <div class="bg-yellow-50 p-4 rounded-lg">
-                                <h4 class="font-medium text-yellow-900">Propostas</h4>
-                                <p class="text-2xl font-bold text-yellow-600" id="proposalsCount">0</p>
-                            </div>
-                            <div class="bg-green-50 p-4 rounded-lg">
-                                <h4 class="font-medium text-green-900">Negociação</h4>
-                                <p class="text-2xl font-bold text-green-600" id="negotiationCount">0</p>
-                            </div>
-                            <div class="bg-purple-50 p-4 rounded-lg">
-                                <h4 class="font-medium text-purple-900">Fechadas</h4>
-                                <p class="text-2xl font-bold text-purple-600" id="closedCount">0</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Quick Actions -->
-                    <div class="bg-white p-6 rounded-xl shadow-sm border">
-                        <h3 class="text-xl font-semibold mb-4">Ações Rápidas</h3>
-                        <div class="space-y-3">
-                            <button class="w-full bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600">
-                                <i class="fas fa-plus mr-2"></i>Novo Pedido
-                            </button>
-                            <button class="w-full bg-green-500 text-white py-3 rounded-lg hover:bg-green-600">
-                                <i class="fas fa-file-invoice mr-2"></i>Gerar Proposta
-                            </button>
-                            <button class="w-full bg-purple-500 text-white py-3 rounded-lg hover:bg-purple-600">
-                                <i class="fas fa-chart-bar mr-2"></i>Relatório Vendas
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- EST Section -->
-            <div id="est-section" class="form-section p-6">
-                <div class="mb-6">
-                    <h2 class="text-3xl font-bold text-gray-900 mb-2">EST - Estoque</h2>
-                    <p class="text-gray-600">Controle de estoque e movimentações</p>
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <!-- Stock Levels -->
-                    <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border">
-                        <h3 class="text-xl font-semibold mb-4">Níveis de Estoque</h3>
-                        <div id="stockLevels" class="space-y-4">
-                            <div class="flex items-center justify-between p-3 bg-red-50 rounded-lg">
-                                <div>
-                                    <p class="font-medium text-red-900">Produtos em Falta</p>
-                                    <p class="text-sm text-red-600">Necessitam reposição urgente</p>
-                                </div>
-                                <span class="text-2xl font-bold text-red-600" id="outOfStockCount">0</span>
-                            </div>
-                            <div class="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
-                                <div>
-                                    <p class="font-medium text-yellow-900">Estoque Baixo</p>
-                                    <p class="text-sm text-yellow-600">Abaixo do nível mínimo</p>
-                                </div>
-                                <span class="text-2xl font-bold text-yellow-600" id="lowStockCount">0</span>
-                            </div>
-                            <div class="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                                <div>
-                                    <p class="font-medium text-green-900">Estoque Normal</p>
-                                    <p class="text-sm text-green-600">Dentro dos níveis adequados</p>
-                                </div>
-                                <span class="text-2xl font-bold text-green-600" id="normalStockCount">0</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Stock Actions -->
-                    <div class="bg-white p-6 rounded-xl shadow-sm border">
-                        <h3 class="text-xl font-semibold mb-4">Movimentações</h3>
-                        <div class="space-y-3">
-                            <button class="w-full bg-green-500 text-white py-3 rounded-lg hover:bg-green-600">
-                                <i class="fas fa-plus mr-2"></i>Entrada
-                            </button>
-                            <button class="w-full bg-red-500 text-white py-3 rounded-lg hover:bg-red-600">
-                                <i class="fas fa-minus mr-2"></i>Saída
-                            </button>
-                            <button class="w-full bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600">
-                                <i class="fas fa-exchange-alt mr-2"></i>Transferência
-                            </button>
-                            <button class="w-full bg-purple-500 text-white py-3 rounded-lg hover:bg-purple-600">
-                                <i class="fas fa-inventory mr-2"></i>Inventário
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- IMP Section -->
-            <div id="imp-section" class="form-section p-6">
-                <div class="mb-6">
-                    <h2 class="text-3xl font-bold text-gray-900 mb-2">IMP - Importação</h2>
-                    <p class="text-gray-600">Gestão de importações e processos</p>
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <!-- Import Processes -->
-                    <div class="bg-white p-6 rounded-xl shadow-sm border">
-                        <h3 class="text-xl font-semibold mb-4">Processos de Importação</h3>
-                        <div id="importProcesses" class="space-y-4">
-                            <!-- Import processes will be loaded here -->
-                        </div>
-                    </div>
-
-                    <!-- Import Stats -->
-                    <div class="bg-white p-6 rounded-xl shadow-sm border">
-                        <h3 class="text-xl font-semibold mb-4">Estatísticas</h3>
-                        <div id="importStats" class="grid grid-cols-2 gap-4">
-                            <div class="text-center p-4 bg-blue-50 rounded-lg">
-                                <p class="text-2xl font-bold text-blue-600" id="activeProcessesCount">0</p>
-                                <p class="text-sm text-blue-900">Processos Ativos</p>
-                            </div>
-                            <div class="text-center p-4 bg-green-50 rounded-lg">
-                                <p class="text-2xl font-bold text-green-600" id="totalValueCount">R$ 0</p>
-                                <p class="text-sm text-green-900">Valor Total</p>
-                            </div>
-                            <div class="text-center p-4 bg-yellow-50 rounded-lg">
-                                <p class="text-2xl font-bold text-yellow-600" id="pendingProcessesCount">0</p>
-                                <p class="text-sm text-yellow-900">Aguardando</p>
-                            </div>
-                            <div class="text-center p-4 bg-purple-50 rounded-lg">
-                                <p class="text-2xl font-bold text-purple-600" id="averageDaysCount">0</p>
-                                <p class="text-sm text-purple-900">Dias Médios</p>
+                        <div class="p-6">
+                            <div class="data-table">
+                                <table class="w-full">
+                                    <thead>
+                                        <tr class="bg-gray-50">
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">CNPJ</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contato</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="suppliersTableBody">
+                                        <!-- Suppliers will be loaded here -->
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            </section>
 
-            <!-- Other sections would continue here... -->
+            <!-- Other Module Sections (Placeholder) -->
+            <section id="vnd" class="p-6 section hidden">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">VND - Vendas</h2>
+                <div class="bg-white rounded-lg shadow-sm p-6">
+                    <p class="text-gray-500">Módulo de vendas em desenvolvimento...</p>
+                </div>
+            </section>
+
+            <section id="cmp" class="p-6 section hidden">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">CMP - Compras</h2>
+                <div class="bg-white rounded-lg shadow-sm p-6">
+                    <p class="text-gray-500">Módulo de compras em desenvolvimento...</p>
+                </div>
+            </section>
+
+            <section id="fis" class="p-6 section hidden">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">FIS - Fiscal</h2>
+                <div class="bg-white rounded-lg shadow-sm p-6">
+                    <p class="text-gray-500">Módulo fiscal em desenvolvimento...</p>
+                </div>
+            </section>
+
+            <section id="est" class="p-6 section hidden">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">EST - Estoque</h2>
+                <div class="bg-white rounded-lg shadow-sm p-6">
+                    <p class="text-gray-500">Módulo de estoque em desenvolvimento...</p>
+                </div>
+            </section>
+
+            <section id="imp" class="p-6 section hidden">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">IMP - Importação</h2>
+                <div class="bg-white rounded-lg shadow-sm p-6">
+                    <p class="text-gray-500">Módulo de importação em desenvolvimento...</p>
+                </div>
+            </section>
+
+            <section id="loc" class="p-6 section hidden">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">LOC - Localização</h2>
+                <div class="bg-white rounded-lg shadow-sm p-6">
+                    <p class="text-gray-500">Módulo de localização em desenvolvimento...</p>
+                </div>
+            </section>
+
+            <section id="log" class="p-6 section hidden">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">LOG - Logística</h2>
+                <div class="bg-white rounded-lg shadow-sm p-6">
+                    <p class="text-gray-500">Módulo de logística em desenvolvimento...</p>
+                </div>
+            </section>
+
+            <section id="prd" class="p-6 section hidden">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">PRD - Produção</h2>
+                <div class="bg-white rounded-lg shadow-sm p-6">
+                    <p class="text-gray-500">Módulo de produção em desenvolvimento...</p>
+                </div>
+            </section>
+
+            <section id="pro" class="p-6 section hidden">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">PRO - Projetos</h2>
+                <div class="bg-white rounded-lg shadow-sm p-6">
+                    <p class="text-gray-500">Módulo de projetos em desenvolvimento...</p>
+                </div>
+            </section>
+
+            <section id="spt" class="p-6 section hidden">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">SPT - Suporte</h2>
+                <div class="bg-white rounded-lg shadow-sm p-6">
+                    <p class="text-gray-500">Módulo de suporte em desenvolvimento...</p>
+                </div>
+            </section>
+
+            <section id="whk" class="p-6 section hidden">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">WHK - Webhooks</h2>
+                <div class="bg-white rounded-lg shadow-sm p-6">
+                    <p class="text-gray-500">Módulo de webhooks em desenvolvimento...</p>
+                </div>
+            </section>
         </main>
     </div>
 
-    <!-- Modals -->
-    <div id="clientModal" class="modal fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4">
-        <div class="bg-white rounded-xl max-w-2xl w-full max-h-screen overflow-y-auto">
-            <div class="p-6 border-b">
-                <h3 class="text-xl font-semibold">Novo Cliente</h3>
-            </div>
-            <form id="clientForm" class="p-6 space-y-4">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Nome/Razão Social</label>
-                        <input type="text" name="nome" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">CPF/CNPJ</label>
-                        <input type="text" name="cpf_cnpj" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                        <input type="email" name="email" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Telefone</label>
-                        <input type="tel" name="telefone" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    </div>
-                </div>
-                <div class="flex justify-end space-x-4 pt-4">
-                    <button type="button" id="cancelClientBtn" class="px-6 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">
-                        Cancelar
-                    </button>
-                    <button type="submit" class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
-                        Salvar
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
+    <!-- Include API Client -->
+    <script src="api-client.js"></script>
 
-    <script src="./api-client.js"></script>
+    <!-- Main Application Script -->
     <script>
-        // System configuration
-        const config = {
-            apiUrl: window.location.hostname === 'localhost' ? 'http://localhost:3001' : 'https://erp-api-clean-r88y1fdz9-nxt-9032fd74.vercel.app',
-            refreshInterval: 30000,
-            environment: window.location.hostname === 'localhost' ? 'development' : 'production'
-        };
-
-        // Global state
+        // Global variables
         let currentSection = 'dashboard';
-        let currentCadTab = 'clients';
-        let clientsData = [];
-        let productsData = [];
-        let suppliersData = [];
-        let dashboardData = {};
+        let currentUser = null;
+        let salesChart = null;
+        let isDashboardLoading = false;
+        let isDashboardLoaded = false;
+        let setupEventListenersCompleted = false;
 
-        // Initialize the system
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 DOM Content Loaded - Starting system initialization');
-            checkAuthentication();
-            initializeSystem();
-            setupEventListeners();
-            
-            // Ensure dashboard section is properly displayed and load its data
-            console.log('📱 Showing dashboard section');
-            showSection('dashboard');
-        });
-
+        // Check authentication on page load
         function checkAuthentication() {
-            const authToken = localStorage.getItem('auth_token');
-            const userData = localStorage.getItem('user_data');
-            
-            if (!authToken || !userData) {
-                // Usuário não autenticado, redirecionar para login
+            const token = localStorage.getItem('auth_token');
+            if (!token) {
                 window.location.href = './login-direto.html';
                 return;
             }
             
-            try {
-                const user = JSON.parse(userData);
-                // Atualizar nome do usuário na interface
-                const userNameElements = document.querySelectorAll('[data-user-name]');
-                userNameElements.forEach(el => {
-                    el.textContent = user.first_name || 'Admin';
-                });
-                
-                console.log('✅ Usuário autenticado:', user.first_name);
-            } catch (error) {
-                console.error('Erro ao ler dados do usuário:', error);
-                // Dados corrompidos, redirecionar para login
-                localStorage.clear();
-                window.location.href = './login-direto.html';
+            // Set user name if available
+            const userData = localStorage.getItem('user_data');
+            if (userData) {
+                try {
+                    const user = JSON.parse(userData);
+                    currentUser = user;
+                    const userNameElement = document.querySelector('[data-user-name]');
+                    if (userNameElement) {
+                        userNameElement.textContent = user.first_name || user.name || 'Admin';
+                    }
+                } catch (e) {
+                    console.error('Error parsing user data:', e);
+                }
             }
         }
 
+        // Initialize the system
         function initializeSystem() {
-            console.log('🚀 Sistema ERP NXT inicializado');
-            console.log('🌐 Ambiente:', config.environment);
-            console.log('📡 API URL:', config.apiUrl);
-            
-            // Update environment status
-            document.getElementById('environmentStatus').textContent = 
-                config.environment === 'development' ? '💻 Desenvolvimento' : '🚀 Produção';
+            setupEventListeners();
+            // Only load dashboard on initial load, not when section is shown
+            if (!isDashboardLoaded) {
+                loadDashboard();
+            }
         }
 
+        // Setup event listeners
         function setupEventListeners() {
+            // Prevent duplicate event listener registration
+            if (setupEventListenersCompleted) {
+                return;
+            }
+            setupEventListenersCompleted = true;
             // Sidebar navigation
             document.querySelectorAll('.sidebar-item').forEach(item => {
-                item.addEventListener('click', function(e) {
+                item.addEventListener('click', (e) => {
                     e.preventDefault();
-                    const section = this.getAttribute('href').substring(1);
+                    const section = e.currentTarget.getAttribute('href').substring(1);
                     showSection(section);
                 });
             });
 
-            // Sidebar toggle
-            document.getElementById('sidebarToggle').addEventListener('click', function() {
-                const sidebar = document.getElementById('sidebar');
-                sidebar.classList.toggle('-translate-x-full');
+            // CAD tabs
+            document.querySelectorAll('.cad-tab').forEach(tab => {
+                tab.addEventListener('click', (e) => {
+                    const tabName = e.currentTarget.getAttribute('data-tab');
+                    showCadTab(tabName);
+                });
             });
 
-            // CAD sub-navigation
-            document.getElementById('cadClientsBtn').addEventListener('click', () => showCadTab('clients'));
-            document.getElementById('cadProductsBtn').addEventListener('click', () => showCadTab('products'));
-            document.getElementById('cadSuppliersBtn').addEventListener('click', () => showCadTab('suppliers'));
+            // Dashboard refresh - force reload
+            document.getElementById('refreshDashboard').addEventListener('click', () => {
+                isDashboardLoaded = false;
+                loadDashboard(true);
+            });
 
-            // User menu dropdown
-            document.getElementById('userMenu').addEventListener('click', function() {
-                const dropdown = document.getElementById('userDropdown');
-                dropdown.classList.toggle('hidden');
+            // User menu toggle
+            document.getElementById('userMenu').addEventListener('click', () => {
+                document.getElementById('userDropdown').classList.toggle('hidden');
             });
 
             // Close dropdown when clicking outside
-            document.addEventListener('click', function(e) {
-                const userMenu = document.getElementById('userMenu');
-                const dropdown = document.getElementById('userDropdown');
-                if (!userMenu.contains(e.target)) {
-                    dropdown.classList.add('hidden');
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('#userMenu')) {
+                    document.getElementById('userDropdown').classList.add('hidden');
                 }
             });
 
-            // Modal controls
-            document.getElementById('addClientBtn').addEventListener('click', () => openModal('clientModal'));
-            document.getElementById('cancelClientBtn').addEventListener('click', () => closeModal('clientModal'));
-
-            // Form submissions
-            document.getElementById('clientForm').addEventListener('submit', handleClientSubmit);
+            // Sidebar toggle for mobile
+            document.getElementById('sidebarToggle').addEventListener('click', () => {
+                document.getElementById('sidebar').classList.toggle('-translate-x-full');
+            });
         }
 
-        function showSection(section) {
-            console.log(`🔄 Switching to section: ${section}`);
-            
+        // Show section
+        function showSection(sectionName) {
             // Hide all sections
-            document.querySelectorAll('.form-section').forEach(sec => {
-                sec.classList.remove('active');
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.add('hidden');
+                section.classList.remove('active');
             });
 
-            // Show selected section
-            const targetSection = document.getElementById(section + '-section');
-            if (!targetSection) {
-                console.error(`❌ Section ${section}-section not found`);
-                return;
+            // Show target section
+            const targetSection = document.getElementById(sectionName);
+            if (targetSection) {
+                targetSection.classList.remove('hidden');
+                targetSection.classList.add('active');
             }
-            targetSection.classList.add('active');
-            console.log(`✅ Section ${section}-section is now active`);
 
-            // Update sidebar active state
+            // Update sidebar
             document.querySelectorAll('.sidebar-item').forEach(item => {
                 item.classList.remove('active');
             });
-            const sidebarLink = document.querySelector(`[href="#${section}"]`);
-            if (sidebarLink) {
-                sidebarLink.classList.add('active');
-            }
+            document.querySelector(`[href="#${sectionName}"]`).classList.add('active');
 
-            currentSection = section;
+            currentSection = sectionName;
 
-            // Load section data
-            switch(section) {
-                case 'dashboard':
-                    loadDashboardData();
-                    break;
-                case 'cad':
-                    loadCadData();
-                    break;
-                case 'vnd':
-                    loadVendasData();
-                    break;
-                case 'est':
-                    loadEstoqueData();
-                    break;
-                case 'imp':
-                    loadImportacaoData();
-                    break;
-                // Add other sections as needed
+            // Load section data only if not already loaded
+            if (sectionName === 'dashboard') {
+                // Only reload dashboard if explicitly requested or not loaded yet
+                if (!isDashboardLoaded) {
+                    loadDashboard();
+                }
+            } else if (sectionName === 'cad') {
+                loadCadData();
             }
         }
 
-        function showCadTab(tab) {
-            // Hide all CAD content
+        // Show CAD tab
+        function showCadTab(tabName) {
+            // Hide all cad contents
             document.querySelectorAll('.cad-content').forEach(content => {
+                content.classList.add('hidden');
                 content.classList.remove('active');
             });
 
-            // Show selected content
-            document.getElementById(`cad${tab.charAt(0).toUpperCase() + tab.slice(1)}Content`).classList.add('active');
+            // Show target tab
+            const targetTab = document.getElementById(`${tabName}-tab`);
+            if (targetTab) {
+                targetTab.classList.remove('hidden');
+                targetTab.classList.add('active');
+            }
 
-            // Update button states
-            document.querySelectorAll('[id^="cad"][id$="Btn"]').forEach(btn => {
-                btn.classList.remove('bg-blue-500', 'text-white');
-                btn.classList.add('bg-gray-100', 'text-gray-700');
+            // Update tab navigation
+            document.querySelectorAll('.cad-tab').forEach(tab => {
+                tab.classList.remove('active', 'border-blue-500', 'text-blue-600');
+                tab.classList.add('border-transparent', 'text-gray-500');
             });
-
-            document.getElementById(`cad${tab.charAt(0).toUpperCase() + tab.slice(1)}Btn`).classList.remove('bg-gray-100', 'text-gray-700');
-            document.getElementById(`cad${tab.charAt(0).toUpperCase() + tab.slice(1)}Btn`).classList.add('bg-blue-500', 'text-white');
-
-            currentCadTab = tab;
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active', 'border-blue-500', 'text-blue-600');
+            document.querySelector(`[data-tab="${tabName}"]`).classList.remove('border-transparent', 'text-gray-500');
 
             // Load tab data
-            switch(tab) {
-                case 'clients':
-                    loadClientsData();
-                    break;
-                case 'products':
-                    loadProductsData();
-                    break;
-                case 'suppliers':
-                    loadSuppliersData();
-                    break;
+            if (tabName === 'clients') {
+                loadClients();
+            } else if (tabName === 'products') {
+                loadProducts();
+            } else if (tabName === 'suppliers') {
+                loadSuppliers();
             }
         }
 
-        async function loadDashboardData() {
+        // Load dashboard data
+        async function loadDashboard(forceReload = false) {
+            // Prevent multiple simultaneous dashboard loads
+            if (isDashboardLoading) {
+                console.warn('Dashboard is already loading, skipping duplicate request');
+                return;
+            }
+            
+            // Skip if already loaded unless forced
+            if (isDashboardLoaded && !forceReload) {
+                console.log('Dashboard already loaded, skipping');
+                return;
+            }
+            
+            isDashboardLoading = true;
+            console.log('🚀 Loading dashboard...');
+            
             try {
-                console.log('🚀 loadDashboardData started');
-                showLoading('dashboard-section');
+                // Add timeout protection
+                const timeoutPromise = new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Dashboard load timeout')), 10000)
+                );
                 
-                console.log('📡 Fetching dashboard stats...');
-                const stats = await fetchDashboardStats();
-                console.log('📊 Stats received:', stats);
+                // Load dashboard stats
+                const statsPromise = window.erpApi.getDashboardStats();
+                const response = await Promise.race([statsPromise, timeoutPromise]);
                 
-                console.log('🔄 Updating dashboard stats...');
-                updateDashboardStats(stats);
+                if (response.success) {
+                    updateDashboardStats(response.data);
+                }
+
+                // Load activities
+                const activitiesPromise = window.erpApi.getDashboardActivities();
+                const activitiesResponse = await Promise.race([activitiesPromise, timeoutPromise]);
+                if (activitiesResponse.success) {
+                    updateRecentActivities(activitiesResponse.data);
+                }
+
+                // Initialize chart
+                initializeSalesChart();
                 
-                console.log('📡 Fetching recent activities...');
-                const activities = await fetchRecentActivities();
-                console.log('📋 Activities received:', activities);
+                isDashboardLoaded = true;
+                console.log('✅ Dashboard loaded successfully');
                 
-                console.log('🔄 Updating recent activities...');
-                updateRecentActivities(activities);
-                
-                console.log('📈 Initializing charts...');
-                await initializeCharts();
-                
-                hideLoading('dashboard-section');
-                console.log('✅ loadDashboardData completed successfully');
             } catch (error) {
-                console.error('❌ Erro ao carregar dados do dashboard:', error);
-                console.error('❌ Error stack:', error.stack);
-                hideLoading('dashboard-section');
-                showError('dashboard-section', `Erro ao carregar dados: ${error.message}`);
+                console.error('❌ Error loading dashboard:', error);
+                setStatus('Erro ao carregar dados: ' + error.message, 'error');
+                // Reset loading state on error
+                isDashboardLoaded = false;
+            } finally {
+                isDashboardLoading = false;
             }
         }
 
-        async function fetchDashboardStats() {
-            const response = await window.erpApi.getDashboardStats();
-            return response.data;
-        }
-
-        async function fetchRecentActivities() {
-            const response = await window.erpApi.getDashboardActivities();
-            return response.data;
-        }
-
+        // Update dashboard stats
         function updateDashboardStats(stats) {
-            try {
-                console.log('🔍 updateDashboardStats called with:', stats);
-                
-                // Use the correct property names from API response
-                const clientsCount = stats.totalClientes || stats.detalhes?.clientes || 0;
-                const productsCount = stats.detalhes?.produtos || 0;
-                const salesCount = stats.totalVendas || stats.detalhes?.vendas || 0;
-                const revenue = stats.faturamentoMes || 0;
-                
-                console.log('📊 Extracted values:', { clientsCount, productsCount, salesCount, revenue });
-                
-                // Check if elements exist before updating
-                const clientsElement = document.getElementById('clientsCount');
-                const productsElement = document.getElementById('productsCount');
-                const salesElement = document.getElementById('salesCount');
-                const revenueElement = document.getElementById('revenueCount');
-                
-                console.log('🔍 Elements found:', {
-                    clientsElement: !!clientsElement,
-                    productsElement: !!productsElement,
-                    salesElement: !!salesElement,
-                    revenueElement: !!revenueElement
-                });
-                
-                if (!clientsElement) {
-                    console.error('❌ clientsCount element not found');
-                    return;
-                }
-                if (!productsElement) {
-                    console.error('❌ productsCount element not found');
-                    return;
-                }
-                if (!salesElement) {
-                    console.error('❌ salesCount element not found');
-                    return;
-                }
-                if (!revenueElement) {
-                    console.error('❌ revenueCount element not found');
-                    return;
-                }
-                
-                // Update elements safely
-                clientsElement.textContent = clientsCount.toLocaleString();
-                productsElement.textContent = productsCount.toLocaleString();
-                salesElement.textContent = salesCount.toLocaleString();
-                revenueElement.textContent = `R$ ${revenue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-                
-                console.log('✅ Dashboard stats updated successfully');
-                
-            } catch (error) {
-                console.error('❌ Error in updateDashboardStats:', error);
-                throw error;
-            }
+            const clientsCount = stats.totalClientes || stats.detalhes?.clientes || 0;
+            const productsCount = stats.detalhes?.produtos || 0;
+            const salesCount = stats.totalVendas || stats.detalhes?.vendas || 0;
+            const revenue = stats.faturamentoMes || 0;
+            
+            document.getElementById('clientsCount').textContent = clientsCount.toLocaleString();
+            document.getElementById('productsCount').textContent = productsCount.toLocaleString();
+            document.getElementById('salesCount').textContent = salesCount.toLocaleString();
+            document.getElementById('revenueCount').textContent = `R$ ${revenue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
         }
 
+        // Update recent activities
         function updateRecentActivities(activities) {
-            try {
-                console.log('🔍 updateRecentActivities called with:', activities);
-                
-                const container = document.getElementById('recentActivity');
-                if (!container) {
-                    console.error('❌ recentActivity container not found');
-                    return;
-                }
-                
-                if (!activities || !Array.isArray(activities)) {
-                    console.error('❌ Invalid activities data:', activities);
-                    container.innerHTML = '<p class="text-gray-500">Nenhuma atividade recente encontrada.</p>';
-                    return;
-                }
-                
-                console.log(`📋 Processing ${activities.length} activities`);
-                
-                container.innerHTML = activities.map(activity => {
-                    const title = activity.title || activity.action || 'Atividade';
-                    const description = activity.description || '';
-                    const time = activity.timestamp ? formatTime(activity.timestamp) : (activity.time || '');
-                    const type = activity.type || 'default';
-                    
-                    return `
-                        <div class="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
-                            <div class="flex-shrink-0">
-                                <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                                    <i class="fas fa-${getActivityIcon(type)} text-white text-sm"></i>
-                                </div>
-                            </div>
-                            <div class="flex-1">
-                                <p class="text-sm font-medium text-gray-900">${title}</p>
-                                <p class="text-sm text-gray-500">${description}</p>
-                            </div>
-                            <div class="text-xs text-gray-400">${time}</div>
-                        </div>
-                    `;
-                }).join('');
-                
-                console.log('✅ Recent activities updated successfully');
-                
-            } catch (error) {
-                console.error('❌ Error in updateRecentActivities:', error);
-                const container = document.getElementById('recentActivity');
-                if (container) {
-                    container.innerHTML = '<p class="text-red-500">Erro ao carregar atividades recentes.</p>';
-                }
-            }
-        }
+            const container = document.getElementById('recentActivities');
+            container.innerHTML = '';
 
-        function formatTime(timestamp) {
-            try {
-                const date = new Date(timestamp);
-                const now = new Date();
-                const diffInMinutes = Math.floor((now - date) / 60000);
-                
-                if (diffInMinutes < 1) return 'Agora';
-                if (diffInMinutes < 60) return `${diffInMinutes}m atrás`;
-                
-                const diffInHours = Math.floor(diffInMinutes / 60);
-                if (diffInHours < 24) return `${diffInHours}h atrás`;
-                
-                const diffInDays = Math.floor(diffInHours / 24);
-                if (diffInDays < 7) return `${diffInDays}d atrás`;
-                
-                return date.toLocaleDateString('pt-BR');
-            } catch (error) {
-                console.error('Error formatting time:', error);
-                return 'Data inválida';
-            }
-        }
-
-        function getActivityIcon(type) {
-            const icons = {
-                client: 'user',
-                sale: 'shopping-cart',
-                product: 'box',
-                import: 'ship'
-            };
-            return icons[type] || 'info';
-        }
-
-        async function initializeCharts() {
-            try {
-                const authToken = localStorage.getItem('auth_token');
-                
-                // Get sales chart data
-                const salesResponse = await fetch(`${config.apiUrl}/dashboard/charts/sales`, {
-                    headers: {
-                        'Authorization': `Bearer ${authToken}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                const salesData = salesResponse.ok ? await salesResponse.json() : null;
-                
-                // Get products chart data
-                const productsResponse = await fetch(`${config.apiUrl}/dashboard/charts/products`, {
-                    headers: {
-                        'Authorization': `Bearer ${authToken}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                const productsData = productsResponse.ok ? await productsResponse.json() : null;
-                
-                // Sales Chart
-                const salesCtx = document.getElementById('salesChart').getContext('2d');
-                new Chart(salesCtx, {
-                    type: 'line',
-                    data: {
-                        labels: salesData?.data?.labels || ['Sem dados'],
-                        datasets: [{
-                            label: 'Vendas',
-                            data: salesData?.data?.values || [0],
-                            borderColor: 'rgb(59, 130, 246)',
-                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                            tension: 0.4
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                display: false
-                            }
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: true
-                            }
-                        }
-                    }
-                });
-
-                // Products Chart
-                const productsCtx = document.getElementById('productsChart').getContext('2d');
-                new Chart(productsCtx, {
-                    type: 'doughnut',
-                    data: {
-                        labels: productsData?.data?.labels || ['Sem dados'],
-                        datasets: [{
-                            data: productsData?.data?.values || [1],
-                            backgroundColor: productsData?.data?.colors || ['rgb(156, 163, 175)']
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                position: 'bottom'
-                            }
-                        }
-                    }
-                });
-                
-            } catch (error) {
-                console.error('Erro ao carregar dados dos gráficos:', error);
-                // Show empty charts with error message
-                showChartError();
-            }
-        }
-
-
-        function loadCadData() {
-            if (currentCadTab === 'clients') {
-                loadClientsData();
-            } else if (currentCadTab === 'products') {
-                loadProductsData();
-            } else if (currentCadTab === 'suppliers') {
-                loadSuppliersData();
-            }
-        }
-
-        async function loadClientsData() {
-            try {
-                showLoading('clientsTable');
-                
-                const response = await window.erpApi.getClients();
-                const clients = response.data || [];
-                
-                const tbody = document.getElementById('clientsTableBody');
-                tbody.innerHTML = clients.map(client => `
-                    <tr>
-                        <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${client.name || client.nome}</td>
-                        <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">${client.email}</td>
-                        <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">${client.phone || client.telefone}</td>
-                        <td class="px-4 py-4 whitespace-nowrap">
-                            <span class="status-badge ${client.status === 'active' || client.ativo ? 'status-active' : 'status-inactive'}">
-                                ${client.status === 'active' || client.ativo ? 'Ativo' : 'Inativo'}
-                            </span>
-                        </td>
-                        <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">
-                            <button class="text-blue-600 hover:text-blue-900 mr-2" onclick="editClient(${client.id})">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="text-red-600 hover:text-red-900" onclick="deleteClient(${client.id})">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `).join('');
-                
-                hideLoading('clientsTable');
-            } catch (error) {
-                console.error('Erro ao carregar clientes:', error);
-                hideLoading('clientsTable');
-                showError('clientsTable', `Erro ao carregar clientes: ${error.message}`);
-            }
-        }
-
-        async function loadProductsData() {
-            try {
-                showLoading('productsTable');
-                
-                const response = await window.erpApi.getProducts();
-                const products = response.data || [];
-                
-                const tbody = document.getElementById('productsTableBody');
-                tbody.innerHTML = products.map(product => `
-                    <tr>
-                        <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${product.code || product.codigo}</td>
-                        <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">${product.description || product.descricao}</td>
-                        <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">${product.category || product.categoria}</td>
-                        <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">R$ ${(product.price || product.preco || 0).toFixed(2)}</td>
-                        <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">${product.stock || product.estoque || 0}</td>
-                        <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">
-                            <button class="text-blue-600 hover:text-blue-900 mr-2" onclick="editProduct(${product.id})">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="text-red-600 hover:text-red-900" onclick="deleteProduct(${product.id})">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `).join('');
-                
-                hideLoading('productsTable');
-            } catch (error) {
-                console.error('Erro ao carregar produtos:', error);
-                hideLoading('productsTable');
-                showError('productsTable', `Erro ao carregar produtos: ${error.message}`);
-            }
-        }
-
-        async function loadSuppliersData() {
-            try {
-                showLoading('suppliersTable');
-                
-                const response = await window.erpApi.getSuppliers();
-                const suppliers = response.data || [];
-                
-                const tbody = document.getElementById('suppliersTableBody');
-                tbody.innerHTML = suppliers.map(supplier => `
-                    <tr>
-                        <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${supplier.name || supplier.nome}</td>
-                        <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">${supplier.cnpj}</td>
-                        <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">${supplier.contact || supplier.contato}</td>
-                        <td class="px-4 py-4 whitespace-nowrap">
-                            <span class="status-badge ${supplier.status === 'active' || supplier.ativo ? 'status-active' : 'status-inactive'}">
-                                ${supplier.status === 'active' || supplier.ativo ? 'Ativo' : 'Inativo'}
-                            </span>
-                        </td>
-                        <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">
-                            <button class="text-blue-600 hover:text-blue-900 mr-2" onclick="editSupplier(${supplier.id})">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="text-red-600 hover:text-red-900" onclick="deleteSupplier(${supplier.id})">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `).join('');
-                
-                hideLoading('suppliersTable');
-            } catch (error) {
-                console.error('Erro ao carregar fornecedores:', error);
-                hideLoading('suppliersTable');
-                showError('suppliersTable', `Erro ao carregar fornecedores: ${error.message}`);
-            }
-        }
-
-        function openModal(modalId) {
-            document.getElementById(modalId).classList.remove('hidden');
-            document.getElementById(modalId).classList.add('flex');
-        }
-
-        function closeModal(modalId) {
-            document.getElementById(modalId).classList.add('hidden');
-            document.getElementById(modalId).classList.remove('flex');
-        }
-
-        async function handleClientSubmit(e) {
-            e.preventDefault();
-            
-            try {
-                const formData = new FormData(e.target);
-                const clientData = {
-                    name: formData.get('nome'),
-                    cpf_cnpj: formData.get('cpf_cnpj'),
-                    email: formData.get('email'),
-                    phone: formData.get('telefone')
-                };
-
-                const response = await window.erpApi.createClient(clientData);
-                
-                console.log('Cliente salvo com sucesso:', response);
-                
-                // Close modal and refresh data
-                closeModal('clientModal');
-                await loadClientsData();
-                
-                // Reset form
-                e.target.reset();
-                
-            } catch (error) {
-                console.error('Erro ao salvar cliente:', error);
-                alert(`Erro ao salvar cliente: ${error.message}`);
-            }
-        }
-
-        function logout() {
-            // Confirmar logout
-            if (confirm('Tem certeza que deseja sair do sistema?')) {
-                // Usar API client para logout
-                window.erpApi.logout().then(() => {
-                    window.location.href = './login-direto.html';
-                }).catch(() => {
-                    // Mesmo se o logout falhar, limpar localmente
-                    window.erpApi.clearAuth();
-                    window.location.href = './login-direto.html';
-                });
-            }
-        }
-
-        // Função para mostrar erros de carregamento
-        function showError(message) {
-            const errorHtml = `
-                <div class="bg-red-50 border border-red-200 rounded-lg p-4 m-4">
-                    <div class="flex">
-                        <i class="fas fa-exclamation-triangle text-red-400 mr-3 mt-1"></i>
-                        <div>
-                            <h3 class="text-red-800 font-medium">Erro de Conexão</h3>
-                            <p class="text-red-700 text-sm mt-1">${message}</p>
-                            <button onclick="window.location.reload()" class="mt-2 bg-red-600 text-white px-4 py-2 rounded text-sm hover:bg-red-700">
-                                Tentar Novamente
-                            </button>
-                        </div>
+            activities.slice(0, 5).forEach(activity => {
+                const div = document.createElement('div');
+                div.className = 'flex items-center space-x-3 p-3 bg-gray-50 rounded-lg';
+                div.innerHTML = `
+                    <div class="w-8 h-8 bg-${activity.color}-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-${activity.icon} text-${activity.color}-600 text-sm"></i>
                     </div>
-                </div>
-            `;
-            
-            // Mostrar erro no dashboard
-            const container = document.querySelector('.content-area');
-            if (container) {
-                container.innerHTML = errorHtml;
-            }
-        }
-
-        // Função para mostrar loading
-        function showLoading(message = 'Carregando...') {
-            const loadingHtml = `
-                <div class="flex items-center justify-center p-8">
-                    <div class="text-center">
-                        <div class="loading inline-block w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full mb-4"></div>
-                        <p class="text-gray-600">${message}</p>
+                    <div class="flex-1">
+                        <p class="text-sm font-medium text-gray-900">${activity.title}</p>
+                        <p class="text-xs text-gray-500">${activity.description}</p>
                     </div>
-                </div>
-            `;
-            return loadingHtml;
-        }
-
-        // Auto-refresh dashboard data
-        setInterval(() => {
-            if (currentSection === 'dashboard') {
-                loadDashboardData();
-            }
-        }, config.refreshInterval);
-
-        // Loading and error handling functions
-        function showLoading(elementId) {
-            try {
-                console.log(`🔍 showLoading called for elementId: ${elementId}`);
-                
-                const element = document.getElementById(elementId);
-                if (!element) {
-                    console.error(`❌ Element ${elementId} not found for showLoading`);
-                    return;
-                }
-                
-                console.log(`✅ Element ${elementId} found, showing loading`);
-                element.innerHTML = `
-                    <div class="flex items-center justify-center p-8">
-                        <div class="loading inline-block w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full mr-3"></div>
-                        <span class="text-gray-600">Carregando...</span>
+                    <div class="text-xs text-gray-400">
+                        ${new Date(activity.timestamp).toLocaleTimeString()}
                     </div>
                 `;
-                console.log(`✅ Loading displayed successfully in ${elementId}`);
-                
-            } catch (error) {
-                console.error('❌ Error in showLoading function:', error);
-            }
+                container.appendChild(div);
+            });
         }
-        
-        function hideLoading(elementId) {
-            // Loading is hidden when content is replaced
-        }
-        
-        function showError(elementId, message) {
-            try {
-                console.log(`🔍 showError called for elementId: ${elementId}, message: ${message}`);
-                
-                const element = document.getElementById(elementId);
-                if (!element) {
-                    console.error(`❌ Element ${elementId} not found for showError`);
-                    // Fallback to show error in console if element not found
-                    console.error(`Error message was: ${message}`);
-                    return;
-                }
-                
-                console.log(`✅ Element ${elementId} found, showing error`);
-                element.innerHTML = `
-                    <div class="flex items-center justify-center p-8">
-                        <div class="text-center">
-                            <i class="fas fa-exclamation-triangle text-red-500 text-2xl mb-2"></i>
-                            <p class="text-red-600 font-medium">${message}</p>
-                            <button onclick="location.reload()" class="mt-3 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
-                                Tentar novamente
-                            </button>
-                        </div>
-                    </div>
-                `;
-                console.log(`✅ Error displayed successfully in ${elementId}`);
-                
-            } catch (error) {
-                console.error('❌ Error in showError function:', error);
-            }
-        }
-        
-        function showChartError() {
-            const salesChart = document.getElementById('salesChart');
-            const productsChart = document.getElementById('productsChart');
+
+        // Initialize sales chart
+        function initializeSalesChart() {
+            const ctx = document.getElementById('salesChart').getContext('2d');
             
             if (salesChart) {
-                salesChart.parentElement.innerHTML = `
-                    <div class="flex items-center justify-center h-full">
-                        <div class="text-center text-gray-500">
-                            <i class="fas fa-chart-line text-2xl mb-2"></i>
-                            <p>Erro ao carregar dados do gráfico</p>
-                        </div>
-                    </div>
-                `;
+                salesChart.destroy();
             }
-            
-            if (productsChart) {
-                productsChart.parentElement.innerHTML = `
-                    <div class="flex items-center justify-center h-full">
-                        <div class="text-center text-gray-500">
-                            <i class="fas fa-chart-pie text-2xl mb-2"></i>
-                            <p>Erro ao carregar dados do gráfico</p>
-                        </div>
-                    </div>
-                `;
-            }
-        }
-        
-        // Client, product and supplier management functions
-        function editClient(id) {
-            console.log('Editando cliente:', id);
-            // Implement edit functionality
-        }
-        
-        function deleteClient(id) {
-            if (confirm('Tem certeza que deseja excluir este cliente?')) {
-                console.log('Excluindo cliente:', id);
-                // Implement delete functionality
-            }
-        }
-        
-        function editProduct(id) {
-            console.log('Editando produto:', id);
-            // Implement edit functionality
-        }
-        
-        function deleteProduct(id) {
-            if (confirm('Tem certeza que deseja excluir este produto?')) {
-                console.log('Excluindo produto:', id);
-                // Implement delete functionality
-            }
-        }
-        
-        function editSupplier(id) {
-            console.log('Editando fornecedor:', id);
-            // Implement edit functionality
-        }
-        
-        function deleteSupplier(id) {
-            if (confirm('Tem certeza que deseja excluir este fornecedor?')) {
-                console.log('Excluindo fornecedor:', id);
-                // Implement delete functionality
-            }
-        }
-        
-        // Section data loading functions
-        async function loadVendasData() {
-            try {
-                const authToken = localStorage.getItem('auth_token');
-                const response = await fetch(`${config.apiUrl}/vnd/pipeline`, {
-                    headers: {
-                        'Authorization': `Bearer ${authToken}`,
-                        'Content-Type': 'application/json'
+
+            salesChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'],
+                    datasets: [{
+                        label: 'Vendas',
+                        data: [12, 19, 3, 5, 2, 3],
+                        borderColor: 'rgb(59, 130, 246)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
                     }
-                });
+                }
+            });
+        }
+
+        // Load CAD data
+        function loadCadData() {
+            loadClients();
+        }
+
+        // Load clients
+        async function loadClients() {
+            try {
+                const response = await window.erpApi.getClients();
                 
-                if (response.ok) {
-                    const data = await response.json();
-                    const pipeline = data.data || {};
-                    
-                    document.getElementById('leadsCount').textContent = pipeline.leads || 0;
-                    document.getElementById('proposalsCount').textContent = pipeline.proposals || 0;
-                    document.getElementById('negotiationCount').textContent = pipeline.negotiation || 0;
-                    document.getElementById('closedCount').textContent = pipeline.closed || 0;
-                } else {
-                    showError('salesPipeline', 'Erro ao carregar dados do pipeline de vendas');
+                if (response.success) {
+                    const tbody = document.getElementById('clientsTableBody');
+                    tbody.innerHTML = '';
+
+                    response.data.forEach(client => {
+                        const row = document.createElement('tr');
+                        row.className = 'border-b hover:bg-gray-50';
+                        row.innerHTML = `
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900">${client.name}</div>
+                                <div class="text-sm text-gray-500">${client.cpf_cnpj}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">${client.email}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">${client.phone}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="status-badge ${client.status === 'active' ? 'status-active' : 'status-inactive'}">
+                                    ${client.status === 'active' ? 'Ativo' : 'Inativo'}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <button class="text-blue-600 hover:text-blue-900 mr-2">Editar</button>
+                                <button class="text-red-600 hover:text-red-900">Excluir</button>
+                            </td>
+                        `;
+                        tbody.appendChild(row);
+                    });
                 }
             } catch (error) {
-                console.error('Erro ao carregar dados de vendas:', error);
-                showError('salesPipeline', `Erro ao carregar dados: ${error.message}`);
+                console.error('Error loading clients:', error);
+                setStatus('Erro ao carregar clientes: ' + error.message, 'error');
             }
         }
-        
-        async function loadEstoqueData() {
+
+        // Load products
+        async function loadProducts() {
             try {
-                const authToken = localStorage.getItem('auth_token');
-                const response = await fetch(`${config.apiUrl}/est/levels`, {
-                    headers: {
-                        'Authorization': `Bearer ${authToken}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
+                const response = await window.erpApi.getProducts();
                 
-                if (response.ok) {
-                    const data = await response.json();
-                    const levels = data.data || {};
-                    
-                    document.getElementById('outOfStockCount').textContent = levels.out_of_stock || 0;
-                    document.getElementById('lowStockCount').textContent = levels.low_stock || 0;
-                    document.getElementById('normalStockCount').textContent = levels.normal_stock || 0;
-                } else {
-                    showError('stockLevels', 'Erro ao carregar níveis de estoque');
+                if (response.success) {
+                    const tbody = document.getElementById('productsTableBody');
+                    tbody.innerHTML = '';
+
+                    response.data.forEach(product => {
+                        const row = document.createElement('tr');
+                        row.className = 'border-b hover:bg-gray-50';
+                        row.innerHTML = `
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900">${product.codigo || product.code}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">${product.descricao || product.description}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">${product.categoria || product.category}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">R$ ${(product.preco || product.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">${product.estoque || product.stock}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <button class="text-blue-600 hover:text-blue-900 mr-2">Editar</button>
+                                <button class="text-red-600 hover:text-red-900">Excluir</button>
+                            </td>
+                        `;
+                        tbody.appendChild(row);
+                    });
                 }
             } catch (error) {
-                console.error('Erro ao carregar dados de estoque:', error);
-                showError('stockLevels', `Erro ao carregar dados: ${error.message}`);
+                console.error('Error loading products:', error);
+                setStatus('Erro ao carregar produtos: ' + error.message, 'error');
             }
         }
-        
-        async function loadImportacaoData() {
+
+        // Load suppliers
+        async function loadSuppliers() {
             try {
-                const authToken = localStorage.getItem('auth_token');
+                const response = await window.erpApi.getSuppliers();
                 
-                // Load import processes
-                const processesResponse = await fetch(`${config.apiUrl}/imp/processes`, {
-                    headers: {
-                        'Authorization': `Bearer ${authToken}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                if (processesResponse.ok) {
-                    const processesData = await processesResponse.json();
-                    const processes = processesData.data || [];
-                    
-                    const processesContainer = document.getElementById('importProcesses');
-                    processesContainer.innerHTML = processes.map(process => `
-                        <div class="flex items-center justify-between p-3 border rounded-lg">
-                            <div>
-                                <p class="font-medium">${process.code || process.numero}</p>
-                                <p class="text-sm text-gray-600">${process.description || process.descricao}</p>
-                            </div>
-                            <span class="status-badge ${getProcessStatusClass(process.status)}">
-                                ${getProcessStatusText(process.status)}
-                            </span>
-                        </div>
-                    `).join('');
+                if (response.success) {
+                    const tbody = document.getElementById('suppliersTableBody');
+                    tbody.innerHTML = '';
+
+                    response.data.forEach(supplier => {
+                        const row = document.createElement('tr');
+                        row.className = 'border-b hover:bg-gray-50';
+                        row.innerHTML = `
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900">${supplier.name}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">${supplier.cnpj}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">${supplier.contact}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">${supplier.email}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="status-badge ${supplier.status === 'active' ? 'status-active' : 'status-inactive'}">
+                                    ${supplier.status === 'active' ? 'Ativo' : 'Inativo'}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <button class="text-blue-600 hover:text-blue-900 mr-2">Editar</button>
+                                <button class="text-red-600 hover:text-red-900">Excluir</button>
+                            </td>
+                        `;
+                        tbody.appendChild(row);
+                    });
                 }
-                
-                // Load import stats
-                const statsResponse = await fetch(`${config.apiUrl}/imp/stats`, {
-                    headers: {
-                        'Authorization': `Bearer ${authToken}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                if (statsResponse.ok) {
-                    const statsData = await statsResponse.json();
-                    const stats = statsData.data || {};
-                    
-                    document.getElementById('activeProcessesCount').textContent = stats.active || 0;
-                    document.getElementById('totalValueCount').textContent = `R$ ${(stats.total_value || 0).toLocaleString()}`;
-                    document.getElementById('pendingProcessesCount').textContent = stats.pending || 0;
-                    document.getElementById('averageDaysCount').textContent = stats.average_days || 0;
-                }
-                
             } catch (error) {
-                console.error('Erro ao carregar dados de importação:', error);
-                showError('importProcesses', `Erro ao carregar dados: ${error.message}`);
-                showError('importStats', `Erro ao carregar estatísticas: ${error.message}`);
+                console.error('Error loading suppliers:', error);
+                setStatus('Erro ao carregar fornecedores: ' + error.message, 'error');
             }
         }
-        
-        function getProcessStatusClass(status) {
-            const statusMap = {
-                'active': 'status-active',
-                'pending': 'status-pending',
-                'inactive': 'status-inactive',
-                'transit': 'status-pending',
-                'cleared': 'status-active',
-                'documentation': 'status-inactive'
-            };
-            return statusMap[status] || 'status-inactive';
+
+        // Logout function
+        function logout() {
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('refresh_token');
+            localStorage.removeItem('user_data');
+            window.location.href = './login-direto.html';
         }
-        
-        function getProcessStatusText(status) {
-            const statusMap = {
-                'active': 'Ativo',
-                'pending': 'Pendente',
-                'inactive': 'Inativo',
-                'transit': 'Em Trânsito',
-                'cleared': 'Desembaraçado',
-                'documentation': 'Documentação'
-            };
-            return statusMap[status] || 'Desconhecido';
+
+        // Set status message
+        function setStatus(message, type = 'info') {
+            console.log(`[${type.toUpperCase()}] ${message}`);
         }
-        
-        // Global search functionality
-        document.getElementById('globalSearch').addEventListener('input', function(e) {
-            const searchTerm = e.target.value.toLowerCase();
-            if (searchTerm.length >= 3) {
-                // Implement global search
-                console.log('Searching for:', searchTerm);
-            }
+
+        // Initialize when DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuthentication();
+            initializeSystem();
         });
     </script>
 </body>

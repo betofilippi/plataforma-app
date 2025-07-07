@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema ERP NXT - Acesso Simplificado</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            text-align: center;
+            max-width: 500px;
+        }
+        .logo {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            color: white;
+            font-size: 30px;
+        }
+        h1 { color: #333; margin-bottom: 10px; }
+        .subtitle { color: #666; margin-bottom: 30px; font-size: 16px; }
+        .options { margin: 20px 0; }
+        .btn {
+            display: inline-block;
+            padding: 15px 30px;
+            margin: 10px;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+        }
+        .btn-secondary {
+            background: #28a745;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+        .btn-test {
+            background: #ffc107;
+            color: #212529;
+        }
+        .btn-test:hover {
+            background: #e0a800;
+            transform: translateY(-2px);
+        }
+        .status {
+            margin-top: 30px;
+            padding: 15px;
+            border-radius: 5px;
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <i class="fas fa-cube"></i>
+        </div>
+        
+        <h1>Sistema ERP NXT</h1>
+        <p class="subtitle">Versão Simplificada - Sem Infinite Loading</p>
+        
+        <div class="options">
+            <a href="./login-direto.html" class="btn btn-primary">
+                🔐 Login para Sistema Original
+            </a>
+            
+            <a href="./sistema-erp-simplificado.html" class="btn btn-secondary" onclick="return checkAuth()">
+                🚀 Acessar Sistema Simplificado
+            </a>
+            
+            <a href="./test-simplified-system.html" class="btn btn-test">
+                🧪 Testar Sistema Simplificado
+            </a>
+        </div>
+        
+        <div class="status">
+            <strong>✅ Problema Resolvido:</strong><br>
+            • Infinite loading eliminado<br>
+            • Chart.js removido (fonte de problemas)<br>
+            • API client simplificado<br>
+            • Timeout de 5 segundos<br>
+            • Fallback automático em caso de erro
+        </div>
+        
+        <div class="status warning">
+            <strong>⚠️ Mudanças Implementadas:</strong><br>
+            • Sistema completamente reescrito<br>
+            • Arquitetura simplificada<br>
+            • Sem dependências complexas<br>
+            • Performance otimizada
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+    <script>
+        function checkAuth() {
+            const token = localStorage.getItem('auth_token');
+            if (!token) {
+                alert('⚠️ Você precisa fazer login primeiro!\n\nClique em "Login para Sistema Original" e use:\nEmail: admin@plataforma.app\nSenha: admin123');
+                return false;
+            }
+            return true;
+        }
+
+        // Auto-redirect logic (disabled by default)
+        function autoRedirect() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const auto = urlParams.get('auto');
+            
+            if (auto === 'simplified') {
+                console.log('Auto-redirecting to simplified system...');
+                setTimeout(() => {
+                    if (checkAuth()) {
+                        window.location.href = './sistema-erp-simplificado.html';
+                    } else {
+                        window.location.href = './login-direto.html';
+                    }
+                }, 2000);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Sistema ERP NXT - Página de Acesso Simplificado');
+            console.log('✅ Infinite loading issue resolved with simplified architecture');
+            
+            // Uncomment to enable auto-redirect
+            // autoRedirect();
+        });
+    </script>
+</body>
+</html>
