@@ -528,10 +528,14 @@
 
         // Initialize the system
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 DOM Content Loaded - Starting system initialization');
             checkAuthentication();
             initializeSystem();
             setupEventListeners();
-            loadDashboardData();
+            
+            // Ensure dashboard section is properly displayed and load its data
+            console.log('📱 Showing dashboard section');
+            showSection('dashboard');
         });
 
         function checkAuthentication() {
@@ -616,19 +620,30 @@
         }
 
         function showSection(section) {
+            console.log(`🔄 Switching to section: ${section}`);
+            
             // Hide all sections
             document.querySelectorAll('.form-section').forEach(sec => {
                 sec.classList.remove('active');
             });
 
             // Show selected section
-            document.getElementById(section + '-section').classList.add('active');
+            const targetSection = document.getElementById(section + '-section');
+            if (!targetSection) {
+                console.error(`❌ Section ${section}-section not found`);
+                return;
+            }
+            targetSection.classList.add('active');
+            console.log(`✅ Section ${section}-section is now active`);
 
             // Update sidebar active state
             document.querySelectorAll('.sidebar-item').forEach(item => {
                 item.classList.remove('active');
             });
-            document.querySelector(`[href="#${section}"]`).classList.add('active');
+            const sidebarLink = document.querySelector(`[href="#${section}"]`);
+            if (sidebarLink) {
+                sidebarLink.classList.add('active');
+            }
 
             currentSection = section;
 
@@ -689,19 +704,31 @@
 
         async function loadDashboardData() {
             try {
+                console.log('🚀 loadDashboardData started');
                 showLoading('dashboard-section');
                 
+                console.log('📡 Fetching dashboard stats...');
                 const stats = await fetchDashboardStats();
+                console.log('📊 Stats received:', stats);
+                
+                console.log('🔄 Updating dashboard stats...');
                 updateDashboardStats(stats);
                 
+                console.log('📡 Fetching recent activities...');
                 const activities = await fetchRecentActivities();
+                console.log('📋 Activities received:', activities);
+                
+                console.log('🔄 Updating recent activities...');
                 updateRecentActivities(activities);
                 
+                console.log('📈 Initializing charts...');
                 await initializeCharts();
                 
                 hideLoading('dashboard-section');
+                console.log('✅ loadDashboardData completed successfully');
             } catch (error) {
-                console.error('Erro ao carregar dados do dashboard:', error);
+                console.error('❌ Erro ao carregar dados do dashboard:', error);
+                console.error('❌ Error stack:', error.stack);
                 hideLoading('dashboard-section');
                 showError('dashboard-section', `Erro ao carregar dados: ${error.message}`);
             }
@@ -718,16 +745,59 @@
         }
 
         function updateDashboardStats(stats) {
-            // Use the correct property names from API response
-            const clientsCount = stats.totalClientes || stats.detalhes?.clientes || 0;
-            const productsCount = stats.detalhes?.produtos || 0;
-            const salesCount = stats.totalVendas || stats.detalhes?.vendas || 0;
-            const revenue = stats.faturamentoMes || 0;
-            
-            document.getElementById('clientsCount').textContent = clientsCount.toLocaleString();
-            document.getElementById('productsCount').textContent = productsCount.toLocaleString();
-            document.getElementById('salesCount').textContent = salesCount.toLocaleString();
-            document.getElementById('revenueCount').textContent = `R$ ${revenue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            try {
+                console.log('🔍 updateDashboardStats called with:', stats);
+                
+                // Use the correct property names from API response
+                const clientsCount = stats.totalClientes || stats.detalhes?.clientes || 0;
+                const productsCount = stats.detalhes?.produtos || 0;
+                const salesCount = stats.totalVendas || stats.detalhes?.vendas || 0;
+                const revenue = stats.faturamentoMes || 0;
+                
+                console.log('📊 Extracted values:', { clientsCount, productsCount, salesCount, revenue });
+                
+                // Check if elements exist before updating
+                const clientsElement = document.getElementById('clientsCount');
+                const productsElement = document.getElementById('productsCount');
+                const salesElement = document.getElementById('salesCount');
+                const revenueElement = document.getElementById('revenueCount');
+                
+                console.log('🔍 Elements found:', {
+                    clientsElement: !!clientsElement,
+                    productsElement: !!productsElement,
+                    salesElement: !!salesElement,
+                    revenueElement: !!revenueElement
+                });
+                
+                if (!clientsElement) {
+                    console.error('❌ clientsCount element not found');
+                    return;
+                }
+                if (!productsElement) {
+                    console.error('❌ productsCount element not found');
+                    return;
+                }
+                if (!salesElement) {
+                    console.error('❌ salesCount element not found');
+                    return;
+                }
+                if (!revenueElement) {
+                    console.error('❌ revenueCount element not found');
+                    return;
+                }
+                
+                // Update elements safely
+                clientsElement.textContent = clientsCount.toLocaleString();
+                productsElement.textContent = productsCount.toLocaleString();
+                salesElement.textContent = salesCount.toLocaleString();
+                revenueElement.textContent = `R$ ${revenue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                
+                console.log('✅ Dashboard stats updated successfully');
+                
+            } catch (error) {
+                console.error('❌ Error in updateDashboardStats:', error);
+                throw error;
+            }
         }
 
         function updateRecentActivities(activities) {
