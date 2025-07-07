@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Mínimo - ERP NXT</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .loading-dot {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header Simples -->
+    <header class="bg-white shadow-sm border-b">
+        <div class="flex justify-between items-center px-6 py-4">
+            <h1 class="text-xl font-bold text-gray-900">
+                <i class="fas fa-tachometer-alt mr-2 text-blue-600"></i>
+                Dashboard Mínimo
+            </h1>
+            <div class="flex items-center space-x-4">
+                <span id="status" class="text-sm font-semibold text-gray-600">Carregando...</span>
+                <button onclick="logout()" class="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600">
+                    <i class="fas fa-sign-out-alt mr-1"></i>Sair
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mensagens -->
+    <div id="messages" class="mx-6 mt-4"></div>
+
+    <!-- Dashboard Content -->
+    <main class="p-6">
+        <div class="mb-6">
+            <h2 class="text-2xl font-bold text-gray-900 mb-2">Dashboard</h2>
+            <p class="text-gray-600">Estatísticas do sistema ERP</p>
+        </div>
+
+        <!-- Cards de Estatísticas -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- Card Clientes -->
+            <div class="bg-white rounded-lg shadow-sm p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500">Clientes</p>
+                        <p class="text-2xl font-bold text-gray-900" id="clientsCount">
+                            <span class="loading-dot">•••</span>
+                        </p>
+                    </div>
+                    <div class="bg-blue-100 rounded-full p-3">
+                        <i class="fas fa-users text-blue-600"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card Produtos -->
+            <div class="bg-white rounded-lg shadow-sm p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500">Produtos</p>
+                        <p class="text-2xl font-bold text-gray-900" id="productsCount">
+                            <span class="loading-dot">•••</span>
+                        </p>
+                    </div>
+                    <div class="bg-green-100 rounded-full p-3">
+                        <i class="fas fa-box text-green-600"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card Vendas -->
+            <div class="bg-white rounded-lg shadow-sm p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500">Vendas</p>
+                        <p class="text-2xl font-bold text-gray-900" id="salesCount">
+                            <span class="loading-dot">•••</span>
+                        </p>
+                    </div>
+                    <div class="bg-purple-100 rounded-full p-3">
+                        <i class="fas fa-shopping-cart text-purple-600"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card Faturamento -->
+            <div class="bg-white rounded-lg shadow-sm p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500">Faturamento</p>
+                        <p class="text-2xl font-bold text-gray-900" id="revenueCount">
+                            <span class="loading-dot">•••</span>
+                        </p>
+                    </div>
+                    <div class="bg-yellow-100 rounded-full p-3">
+                        <i class="fas fa-dollar-sign text-yellow-600"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Atividades Recentes -->
+        <div class="bg-white rounded-lg shadow-sm p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Atividades Recentes</h3>
+            <div id="activities">
+                <div class="flex items-center justify-center py-8">
+                    <span class="loading-dot text-gray-500">Carregando atividades...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controles de Debug -->
+        <div class="mt-8 bg-gray-100 rounded-lg p-4">
+            <h4 class="font-semibold text-gray-700 mb-2">Debug Info</h4>
+            <div class="text-sm text-gray-600 space-y-1">
+                <div>API Base URL: <span id="apiUrl" class="font-mono bg-white px-2 py-1 rounded">-</span></div>
+                <div>Load Time: <span id="loadTime" class="font-mono bg-white px-2 py-1 rounded">-</span></div>
+                <div>API Calls: <span id="apiCalls" class="font-mono bg-white px-2 py-1 rounded">0</span></div>
+            </div>
+            <button onclick="loadDashboard()" class="mt-2 bg-blue-500 text-white px-4 py-2 rounded text-sm hover:bg-blue-600">
+                <i class="fas fa-sync-alt mr-1"></i>Recarregar
+            </button>
+        </div>
+    </main>
+
+    <!-- API Client Minimo INLINE -->
+    <script>
+        // Estado global simples
+        let apiCallCount = 0;
+        let loadStartTime = Date.now();
+        let isLoading = false;
+
+        // Função para detectar ambiente
+        function getApiUrl() {
+            const hostname = window.location.hostname;
+            if (hostname === 'localhost' || hostname === '127.0.0.1') {
+                return 'http://localhost:3001';
+            } else {
+                return 'https://erp-api-clean-r88y1fdz9-nxt-9032fd74.vercel.app';
+            }
+        }
+
+        // Função para mostrar mensagens
+        function showMessage(text, type = 'info') {
+            const messages = document.getElementById('messages');
+            const colors = {
+                info: 'bg-blue-50 text-blue-800 border-blue-200',
+                success: 'bg-green-50 text-green-800 border-green-200', 
+                error: 'bg-red-50 text-red-800 border-red-200'
+            };
+            
+            messages.innerHTML = `
+                <div class="border rounded-lg p-4 ${colors[type]}">
+                    <div class="flex items-center">
+                        <i class="fas fa-${type === 'error' ? 'exclamation-triangle' : type === 'success' ? 'check-circle' : 'info-circle'} mr-2"></i>
+                        <span>${text}</span>
+                    </div>
+                </div>
+            `;
+
+            if (type !== 'error') {
+                setTimeout(() => messages.innerHTML = '', 5000);
+            }
+        }
+
+        // Função para fazer requisição simples
+        async function makeRequest(endpoint) {
+            apiCallCount++;
+            document.getElementById('apiCalls').textContent = apiCallCount;
+            
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 segundos timeout
+            
+            try {
+                const apiUrl = getApiUrl();
+                console.log(`📡 API Request: GET ${apiUrl}${endpoint}`);
+                
+                const response = await fetch(apiUrl + endpoint, {
+                    signal: controller.signal,
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                clearTimeout(timeoutId);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                console.log(`✅ API Success:`, data);
+                return data;
+                
+            } catch (error) {
+                clearTimeout(timeoutId);
+                console.error(`❌ API Error:`, error);
+                
+                if (error.name === 'AbortError') {
+                    throw new Error('Timeout - API não responde');
+                }
+                throw error;
+            }
+        }
+
+        // Função principal para carregar dashboard
+        async function loadDashboard() {
+            if (isLoading) {
+                console.log('Dashboard já está carregando...');
+                return;
+            }
+            
+            isLoading = true;
+            loadStartTime = Date.now();
+            
+            document.getElementById('status').textContent = 'Carregando...';
+            document.getElementById('status').className = 'text-sm font-semibold text-blue-600';
+            
+            showMessage('Carregando dados do dashboard...', 'info');
+            
+            try {
+                // Carregar estatísticas
+                const statsResponse = await makeRequest('/dashboard/stats');
+                
+                if (statsResponse.success) {
+                    updateStats(statsResponse.data);
+                    showMessage('Estatísticas carregadas com sucesso!', 'success');
+                } else {
+                    throw new Error('Resposta inválida da API de estatísticas');
+                }
+                
+                // Carregar atividades
+                const activitiesResponse = await makeRequest('/dashboard/activities');
+                
+                if (activitiesResponse.success) {
+                    updateActivities(activitiesResponse.data);
+                } else {
+                    console.warn('Falha ao carregar atividades');
+                }
+                
+                // Sucesso!
+                const loadTime = Date.now() - loadStartTime;
+                document.getElementById('loadTime').textContent = `${loadTime}ms`;
+                document.getElementById('status').textContent = 'Online';
+                document.getElementById('status').className = 'text-sm font-semibold text-green-600';
+                
+            } catch (error) {
+                console.error('Erro ao carregar dashboard:', error);
+                showMessage(`Erro: ${error.message}`, 'error');
+                
+                // Fallback com dados básicos
+                updateStats({
+                    totalClientes: 'Offline',
+                    detalhes: { produtos: 'Offline', vendas: 'Offline' },
+                    faturamentoMes: 'Offline'
+                });
+                
+                document.getElementById('activities').innerHTML = `
+                    <div class="text-center py-4 text-gray-500">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>
+                        Não foi possível carregar as atividades
+                    </div>
+                `;
+                
+                document.getElementById('status').textContent = 'Offline';
+                document.getElementById('status').className = 'text-sm font-semibold text-red-600';
+            } finally {
+                isLoading = false;
+            }
+        }
+
+        // Atualizar estatísticas
+        function updateStats(stats) {
+            const clientsCount = stats.totalClientes || stats.detalhes?.clientes || 0;
+            const productsCount = stats.detalhes?.produtos || 0;
+            const salesCount = stats.totalVendas || stats.detalhes?.vendas || 0;
+            const revenue = stats.faturamentoMes || 0;
+            
+            document.getElementById('clientsCount').textContent = 
+                typeof clientsCount === 'number' ? clientsCount.toLocaleString() : clientsCount;
+            document.getElementById('productsCount').textContent = 
+                typeof productsCount === 'number' ? productsCount.toLocaleString() : productsCount;
+            document.getElementById('salesCount').textContent = 
+                typeof salesCount === 'number' ? salesCount.toLocaleString() : salesCount;
+            document.getElementById('revenueCount').textContent = 
+                typeof revenue === 'number' ? `R$ ${revenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : revenue;
+        }
+
+        // Atualizar atividades
+        function updateActivities(activities) {
+            const container = document.getElementById('activities');
+            
+            if (!activities || activities.length === 0) {
+                container.innerHTML = '<div class="text-center py-4 text-gray-500">Nenhuma atividade recente</div>';
+                return;
+            }
+            
+            container.innerHTML = activities.slice(0, 5).map(activity => `
+                <div class="flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg">
+                    <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-${activity.icon || 'info'} text-blue-600 text-sm"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-sm font-medium text-gray-900">${activity.title}</p>
+                        <p class="text-xs text-gray-500">${activity.description || ''}</p>
+                    </div>
+                    <div class="text-xs text-gray-400">
+                        ${new Date(activity.timestamp).toLocaleTimeString()}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Verificar autenticação
+        function checkAuth() {
+            const token = localStorage.getItem('auth_token');
+            if (!token) {
+                window.location.href = './login-direto.html';
+                return false;
+            }
+            return true;
+        }
+
+        // Logout
+        function logout() {
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('refresh_token');
+            localStorage.removeItem('user_data');
+            window.location.href = './login-direto.html';
+        }
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Dashboard Mínimo iniciando...');
+            
+            // Mostrar URL da API
+            document.getElementById('apiUrl').textContent = getApiUrl();
+            
+            // Verificar autenticação
+            if (!checkAuth()) return;
+            
+            // Carregar dashboard
+            loadDashboard();
+        });
+    </script>
+</body>
+</html>
