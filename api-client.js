@@ -207,7 +207,8 @@ class ERPApiClient {
                         integracaoMake: 78,
                         usuarios: 23
                     }
-                }
+                },
+                message: 'Dashboard carregado com sucesso (modo offline)'
             };
         }
     }

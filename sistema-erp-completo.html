@@ -718,10 +718,16 @@
         }
 
         function updateDashboardStats(stats) {
-            document.getElementById('clientsCount').textContent = stats.clients.toLocaleString();
-            document.getElementById('productsCount').textContent = stats.products.toLocaleString();
-            document.getElementById('salesCount').textContent = stats.sales.toLocaleString();
-            document.getElementById('revenueCount').textContent = `R$ ${stats.revenue.toLocaleString()}`;
+            // Use the correct property names from API response
+            const clientsCount = stats.totalClientes || stats.detalhes?.clientes || 0;
+            const productsCount = stats.detalhes?.produtos || 0;
+            const salesCount = stats.totalVendas || stats.detalhes?.vendas || 0;
+            const revenue = stats.faturamentoMes || 0;
+            
+            document.getElementById('clientsCount').textContent = clientsCount.toLocaleString();
+            document.getElementById('productsCount').textContent = productsCount.toLocaleString();
+            document.getElementById('salesCount').textContent = salesCount.toLocaleString();
+            document.getElementById('revenueCount').textContent = `R$ ${revenue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
         }
 
         function updateRecentActivities(activities) {
